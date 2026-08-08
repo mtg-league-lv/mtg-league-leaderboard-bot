@@ -1,6 +1,6 @@
 import { seasonKey, seasonLabel } from './lib/season.js';
 import { seasonLeaderboard } from './lib/leaderboard.js';
-import { renderLeaderboard, renderBreakdown } from './ui/leaderboard-view.js';
+import { renderLeaderboard, renderBreakdown, sortLeaderboard } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
 
 const state = { tournaments: [] };
@@ -42,6 +42,7 @@ function setupLeaderboard() {
   const body = document.getElementById('lb-body');
   const pop = document.getElementById('breakdown-popover');
   let currentRows = [];
+  const sort = { col: 'points', dir: 'desc' };
 
   const byKey = new Map();
   for (const t of state.tournaments) byKey.set(seasonKey(t.date), seasonLabel(t.date));
@@ -57,15 +58,23 @@ function setupLeaderboard() {
 
   function render() {
     const key = select.value;
-    currentRows = seasonLeaderboard(state.tournaments, key);
+    currentRows = sortLeaderboard(seasonLeaderboard(state.tournaments, key), sort);
     const count = state.tournaments.filter(t => seasonKey(t.date) === key).length;
     document.getElementById('q-meta').textContent =
       `${count} tournaments · ${currentRows.length} players`;
-    body.innerHTML = renderLeaderboard(currentRows);
+    body.innerHTML = renderLeaderboard(currentRows, sort);
     hidePopover();
   }
 
   body.addEventListener('click', event => {
+    const sortBtn = event.target.closest('.sort');
+    if (sortBtn) {
+      const col = sortBtn.dataset.sort;
+      if (sort.col === col) sort.dir = sort.dir === 'desc' ? 'asc' : 'desc';
+      else { sort.col = col; sort.dir = 'desc'; }
+      render();
+      return;
+    }
     const btn = event.target.closest('.why');
     if (!btn) return;
     event.stopPropagation();
