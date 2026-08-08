@@ -67,13 +67,25 @@ select {
 .meta { font-size: 13px; color: var(--muted); margin-left: auto; }
 .row {
   display: grid;
-  grid-template-columns: 40px 1fr 70px 70px;
+  grid-template-columns: 34px 1fr 62px 62px 78px;
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
 .row.head { color: var(--muted); font-size: 12px; }
+.row.head .sort {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: right;
+  white-space: nowrap;
+}
+.row.head .sort:hover { color: var(--text); }
+.row.head .sort.active { color: var(--text); }
 .rank { font-weight: 500; }
 .num { text-align: right; }
 .num.strong { font-weight: 500; }
