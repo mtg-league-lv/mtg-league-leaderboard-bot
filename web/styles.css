@@ -7,6 +7,7 @@
   --accent-bg: #e6f1fb;
   --accent-text: #0c447c;
   --win: #0f6e56;
+  --down: #c0392b;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -18,6 +19,7 @@
     --accent-bg: #0c447c;
     --accent-text: #b5d4f4;
     --win: #5dcaa5;
+    --down: #f0857a;
   }
 }
 * { box-sizing: border-box; }
@@ -67,13 +69,18 @@ select {
 .meta { font-size: 13px; color: var(--muted); margin-left: auto; }
 .row {
   display: grid;
-  grid-template-columns: 34px 1fr 62px 62px 78px;
+  grid-template-columns: 30px 1fr 52px 54px 66px 52px;
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
 .row.head { color: var(--muted); font-size: 12px; }
+.move { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.move.up { color: var(--win); }
+.move.down { color: var(--down); }
+.move.new { color: var(--win); font-weight: 600; font-size: 11px; }
+.move b { font-weight: 600; }
 .row.head .sort {
   font: inherit;
   color: inherit;

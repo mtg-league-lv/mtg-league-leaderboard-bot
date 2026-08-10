@@ -1,6 +1,6 @@
 import { seasonKey, seasonLabel } from './lib/season.js';
-import { seasonLeaderboard } from './lib/leaderboard.js';
-import { renderLeaderboard, renderBreakdown, sortLeaderboard } from './ui/leaderboard-view.js';
+import { seasonLeaderboard, seasonLeaderboardBefore } from './lib/leaderboard.js';
+import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
 
 const state = { tournaments: [] };
@@ -59,10 +59,13 @@ function setupLeaderboard() {
   function render() {
     const key = select.value;
     currentRows = sortLeaderboard(seasonLeaderboard(state.tournaments, key), sort);
+    const before = seasonLeaderboardBefore(state.tournaments, key);
+    const previousRows = sortLeaderboard(before.rows, sort);
+    const moves = computeMovements(currentRows, previousRows, before.hasPrevious);
     const count = state.tournaments.filter(t => seasonKey(t.date) === key).length;
     document.getElementById('q-meta').textContent =
       `${count} tournaments · ${currentRows.length} players`;
-    body.innerHTML = renderLeaderboard(currentRows, sort);
+    body.innerHTML = renderLeaderboard(currentRows, sort, moves);
     hidePopover();
   }
 

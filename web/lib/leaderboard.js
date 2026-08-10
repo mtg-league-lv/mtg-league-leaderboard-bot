@@ -75,10 +75,9 @@ export function tournamentScores(tournament) {
   return scores;
 }
 
-export function seasonLeaderboard(tournaments, key) {
+function buildBoard(tournaments) {
   const agg = {};
   for (const tournament of tournaments) {
-    if (seasonKey(tournament.date) !== key) continue;
     const scored = tournamentScores(tournament);
     for (const [name, { score, isLeague, breakdown }] of Object.entries(scored)) {
       if (!isLeague) continue;
@@ -91,4 +90,19 @@ export function seasonLeaderboard(tournaments, key) {
   return Object.values(agg).sort(
     (a, b) => b.points - a.points || a.name.localeCompare(b.name),
   );
+}
+
+export function seasonLeaderboard(tournaments, key) {
+  return buildBoard(tournaments.filter(t => seasonKey(t.date) === key));
+}
+
+// The season board as it stood before the latest-dated tournament(s) in the
+// season, for computing position movement. `hasPrevious` is false when the
+// season has no earlier tournament to compare against.
+export function seasonLeaderboardBefore(tournaments, key) {
+  const inSeason = tournaments.filter(t => seasonKey(t.date) === key);
+  if (inSeason.length === 0) return { rows: [], hasPrevious: false };
+  const maxDate = inSeason.reduce((m, t) => (t.date > m ? t.date : m), inSeason[0].date);
+  const earlier = inSeason.filter(t => t.date < maxDate);
+  return { rows: buildBoard(earlier), hasPrevious: earlier.length > 0 };
 }
