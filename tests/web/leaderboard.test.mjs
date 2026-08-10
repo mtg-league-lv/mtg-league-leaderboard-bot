@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { finalRecords, points, seasonLeaderboard } from '../../web/lib/leaderboard.js';
+import { finalRecords, points, seasonLeaderboard, seasonLeaderboardBefore } from '../../web/lib/leaderboard.js';
 
 const rec = (w, d, l) => ({ wins: w, draws: d, losses: l });
 
@@ -50,6 +50,44 @@ test('seasonLeaderboard sums points, counts events, filters by season, sorts', (
   assert.equal(board[2].points, 5);
   assert.equal(board[2].events, 1);
   assert.ok(!board.find(r => r.name === 'Zed'));
+});
+
+test('seasonLeaderboardBefore drops the latest-dated tournament in the season', () => {
+  const early = { id: 'e', name: 'E', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [ { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Bob', game_wins: 0, record: rec(0, 0, 1) } } ] },
+  ] };
+  const late = { id: 'l', name: 'L', date: '2026-08-01', rounds: [
+    { round: 1, pairings: [ { pairing: 1, player1: { name: 'Bob', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Ann', game_wins: 0, record: rec(0, 0, 1) } } ] },
+  ] };
+  const full = seasonLeaderboard([early, late], '2026-2');
+  const before = seasonLeaderboardBefore([early, late], '2026-2');
+  assert.equal(before.hasPrevious, true);
+  // "before" only reflects the early event: Ann 1st, Bob 2nd; each with one event.
+  assert.deepEqual(before.rows.map(r => r.name), ['Ann', 'Bob']);
+  assert.ok(before.rows.every(r => r.events === 1));
+  // The full board still counts both events (sanity that we did not mutate).
+  assert.ok(full.find(r => r.name === 'Bob').events === 2);
+});
+
+test('seasonLeaderboardBefore has no previous board for a single-tournament season', () => {
+  const only = { id: 'o', name: 'O', date: '2026-08-01', rounds: [
+    { round: 1, pairings: [ { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Bob', game_wins: 0, record: rec(0, 0, 1) } } ] },
+  ] };
+  const before = seasonLeaderboardBefore([only], '2026-2');
+  assert.equal(before.hasPrevious, false);
+  assert.deepEqual(before.rows, []);
+});
+
+test('seasonLeaderboardBefore excludes all tournaments sharing the max date', () => {
+  const mk = (id, date, winner, loser) => ({ id, name: id, date, rounds: [
+    { round: 1, pairings: [ { pairing: 1, player1: { name: winner, game_wins: 2, record: rec(1, 0, 0) }, player2: { name: loser, game_wins: 0, record: rec(0, 0, 1) } } ] },
+  ] });
+  const early = mk('early', '2026-07-06', 'Ann', 'Bob');
+  const lateA = mk('lateA', '2026-08-01', 'Bob', 'Ann');
+  const lateB = mk('lateB', '2026-08-01', 'Cara', 'Ann');
+  const before = seasonLeaderboardBefore([early, lateA, lateB], '2026-2');
+  assert.equal(before.hasPrevious, true);
+  assert.ok(!before.rows.find(r => r.name === 'Cara')); // Cara only appears on the max date
 });
 
 test('seasonLeaderboard excludes non-league players', () => {

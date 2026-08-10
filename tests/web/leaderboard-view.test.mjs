@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderLeaderboard, renderBreakdown, sortLeaderboard } from '../../web/ui/leaderboard-view.js';
+import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements } from '../../web/ui/leaderboard-view.js';
 
 test('renders ranked rows with names, initials, and preserves order', () => {
   const html = renderLeaderboard([
@@ -77,6 +77,53 @@ test('sortLeaderboard does not mutate the input array', () => {
   const rows = [{ name: 'Ann', points: 3, events: 3 }, { name: 'Bob', points: 9, events: 3 }];
   sortLeaderboard(rows, { col: 'points', dir: 'desc' });
   assert.equal(rows[0].name, 'Ann');
+});
+
+test('computeMovements derives up, down, same and NEW from sorted positions', () => {
+  const current = [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }];
+  const previous = [{ name: 'B' }, { name: 'A' }, { name: 'C' }]; // B=1, A=2, C=3; D absent
+  const m = computeMovements(current, previous, true);
+  assert.deepEqual(m.get('A'), { type: 'up', by: 1 });   // 2 -> 1
+  assert.deepEqual(m.get('B'), { type: 'down', by: 1 });  // 1 -> 2
+  assert.deepEqual(m.get('C'), { type: 'same', by: 0 });  // 3 -> 3
+  assert.deepEqual(m.get('D'), { type: 'new', by: 0 });
+});
+
+test('computeMovements returns an empty map when there is no previous board', () => {
+  const m = computeMovements([{ name: 'A' }], [], false);
+  assert.equal(m.size, 0);
+});
+
+test('renders the movement column: green up, red down, NEW, and blank', () => {
+  const rows = [
+    { name: 'A', points: 9, events: 2, breakdown: [] },
+    { name: 'B', points: 8, events: 2, breakdown: [] },
+    { name: 'C', points: 6, events: 2, breakdown: [] },
+    { name: 'D', points: 3, events: 1, breakdown: [] },
+  ];
+  const moves = new Map([
+    ['A', { type: 'up', by: 2 }],
+    ['B', { type: 'down', by: 1 }],
+    ['C', { type: 'same', by: 0 }],
+    ['D', { type: 'new', by: 0 }],
+  ]);
+  const html = renderLeaderboard(rows, { col: 'points', dir: 'desc' }, moves);
+  assert.match(html, /class="[^"]*move up[^"]*">▲ <b>2<\/b>/);
+  assert.match(html, /class="[^"]*move down[^"]*">▼ <b>1<\/b>/);
+  assert.match(html, /class="[^"]*move new[^"]*">NEW</);
+  // 'same' renders an empty movement cell — no arrow, no number.
+  assert.match(html, /class="num move"><\/div>/);
+});
+
+test('movement cells are blank when no movement data is supplied', () => {
+  const html = renderLeaderboard(
+    [{ name: 'A', points: 9, events: 2, breakdown: [] }],
+    { col: 'points', dir: 'desc' },
+  );
+  assert.ok(!html.includes('move up'));
+  assert.ok(!html.includes('move down'));
+  assert.ok(!html.includes('NEW'));
+  assert.match(html, /class="num move"><\/div>/);
 });
 
 test('renderBreakdown lists tournaments, items, subtotals and total', () => {

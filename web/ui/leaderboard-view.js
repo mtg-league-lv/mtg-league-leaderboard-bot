@@ -25,6 +25,32 @@ function perEvent(row) {
   return (row.events ? row.points / row.events : 0).toFixed(1);
 }
 
+// Position change of each current row versus the previous (pre-latest-tournament)
+// board, both already sorted by the active sort. Returns name -> descriptor.
+export function computeMovements(currentSorted, previousSorted, hasPrevious) {
+  const moves = new Map();
+  if (!hasPrevious) return moves;
+  const prevPos = new Map();
+  previousSorted.forEach((row, i) => prevPos.set(row.name, i + 1));
+  currentSorted.forEach((row, i) => {
+    if (!prevPos.has(row.name)) {
+      moves.set(row.name, { type: 'new', by: 0 });
+      return;
+    }
+    const delta = prevPos.get(row.name) - (i + 1);
+    const type = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
+    moves.set(row.name, { type, by: Math.abs(delta) });
+  });
+  return moves;
+}
+
+function moveCell(move) {
+  if (!move || move.type === 'same') return '<div class="num move"></div>';
+  if (move.type === 'new') return '<div class="num move new">NEW</div>';
+  const arrow = move.type === 'up' ? '▲' : '▼';
+  return `<div class="num move ${move.type}">${arrow} <b>${move.by}</b></div>`;
+}
+
 function sortHead(col, label, sort) {
   const active = sort.col === col;
   const ariaSort = active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none';
@@ -35,7 +61,7 @@ function sortHead(col, label, sort) {
   );
 }
 
-export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }) {
+export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, moves = new Map()) {
   if (rows.length === 0) {
     return '<div class="empty">No results for this season.</div>';
   }
@@ -45,6 +71,7 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }) {
     sortHead('events', 'Events', sort) +
     sortHead('points', 'Points', sort) +
     sortHead('ppe', 'Pts/Event', sort) +
+    '<div class="num" title="Change since last tournament">±</div>' +
     '</div>';
   const body = rows
     .map((row, index) => {
@@ -57,6 +84,7 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }) {
         `<div class="num">${row.events}</div>` +
         `<div class="num strong">${row.points}<button class="why" data-index="${index}" aria-label="Points breakdown for ${row.name}">?</button></div>` +
         `<div class="num">${perEvent(row)}</div>` +
+        moveCell(moves.get(row.name)) +
         `</div>`
       );
     })
