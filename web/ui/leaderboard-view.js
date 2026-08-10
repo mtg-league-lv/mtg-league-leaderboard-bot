@@ -71,7 +71,7 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, m
     sortHead('events', 'Events', sort) +
     sortHead('points', 'Points', sort) +
     sortHead('ppe', 'Pts/Event', sort) +
-    '<div class="num" title="Change since last tournament">±</div>' +
+    '<div class="num" title="Change">±</div>' +
     '</div>';
   const body = rows
     .map((row, index) => {
