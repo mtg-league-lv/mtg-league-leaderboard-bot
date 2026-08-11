@@ -20,6 +20,9 @@
         <div class="controls">
           <label for="q-sel">Season</label>
           <select id="q-sel"></select>
+          <button id="rules-btn" class="rules-btn" type="button" aria-haspopup="dialog">
+            <span aria-hidden="true">📖</span> Rules
+          </button>
           <span id="q-meta" class="meta"></span>
         </div>
         <div id="lb-body"></div>
@@ -33,6 +36,12 @@
       </section>
     </main>
     <div id="breakdown-popover" class="breakdown-popover" hidden></div>
+    <div id="rules-modal" class="modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+        <button class="modal-close" type="button" data-close aria-label="Close rules">×</button>
+        <div id="rules-content"></div>
+      </div>
+    </div>
     <script type="module" src="app.js"></script>
   </body>
 </html>
