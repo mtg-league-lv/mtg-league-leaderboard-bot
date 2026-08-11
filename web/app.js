@@ -2,6 +2,7 @@ import { seasonKey, seasonLabel } from './lib/season.js';
 import { seasonLeaderboard, seasonLeaderboardBefore } from './lib/leaderboard.js';
 import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
+import { renderRules } from './ui/rules.js';
 
 const state = { tournaments: [] };
 
@@ -19,6 +20,33 @@ async function boot() {
   setupTabs();
   setupLeaderboard();
   setupTournaments();
+  setupRules();
+}
+
+const SUMMER_2026 = '2026-2';
+
+function setupRules() {
+  const btn = document.getElementById('rules-btn');
+  const modal = document.getElementById('rules-modal');
+  const seasonSelect = document.getElementById('q-sel');
+  document.getElementById('rules-content').innerHTML = renderRules();
+  const open = () => { modal.hidden = false; };
+  const close = () => { modal.hidden = true; };
+  // The rules are Summer-2026 specific, so only show the button for that season.
+  const syncVisibility = () => {
+    const isSummer = seasonSelect.value === SUMMER_2026;
+    btn.hidden = !isSummer;
+    if (!isSummer) close();
+  };
+  btn.addEventListener('click', open);
+  modal.addEventListener('click', event => {
+    if (event.target === modal || event.target.closest('[data-close]')) close();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') close();
+  });
+  seasonSelect.addEventListener('change', syncVisibility);
+  syncVisibility();
 }
 
 function setupTabs() {
