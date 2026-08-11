@@ -56,7 +56,7 @@ body {
   border-color: var(--accent-bg);
 }
 main { max-width: 720px; margin: 0 auto; padding: 20px; }
-.controls { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.controls { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .controls label { font-size: 13px; color: var(--muted); }
 select {
   padding: 6px 10px;
@@ -133,13 +133,14 @@ select {
 .rule-pts { color: var(--win); font-weight: 600; font-variant-numeric: tabular-nums; }
 .row {
   display: grid;
-  grid-template-columns: 30px 1fr 52px 54px 66px 52px;
+  grid-template-columns: 30px minmax(0, 1fr) 52px 54px 66px 52px;
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
 .row.head { color: var(--muted); font-size: 12px; }
+.hd-short { display: none; }
 .move { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .move.up { color: var(--win); }
 .move.down { color: var(--down); }
@@ -160,7 +161,8 @@ select {
 .rank { font-weight: 500; }
 .num { text-align: right; }
 .num.strong { font-weight: 500; }
-.player { display: flex; align-items: center; gap: 10px; }
+.player { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .avatar {
   width: 30px;
   height: 30px;
@@ -247,3 +249,18 @@ select {
 .bd-item, .bd-subtotal, .bd-total { display: flex; justify-content: space-between; gap: 16px; }
 .bd-subtotal { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 3px; color: var(--muted); }
 .bd-total { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 500; }
+
+/* Narrow phones: reclaim width so the player name has room and all columns stay aligned. */
+@media (max-width: 480px) {
+  main { padding: 16px 12px; }
+  .row {
+    grid-template-columns: 24px minmax(0, 1fr) 32px 46px 40px 44px;
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+  .player { gap: 6px; }
+  .avatar { width: 22px; height: 22px; font-size: 11px; }
+  .why { margin-left: 3px; }
+  .hd-full { display: none; }
+  .hd-short { display: inline; }
+}

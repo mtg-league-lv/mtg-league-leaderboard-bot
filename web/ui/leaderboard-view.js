@@ -51,13 +51,14 @@ function moveCell(move) {
   return `<div class="num move ${move.type}">${arrow} <b>${move.by}</b></div>`;
 }
 
-function sortHead(col, label, sort) {
+function sortHead(col, label, short, sort) {
   const active = sort.col === col;
   const ariaSort = active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none';
   const arrow = active ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '';
   return (
     `<button type="button" class="num sort${active ? ' active' : ''}" ` +
-    `data-sort="${col}" aria-sort="${ariaSort}">${label}${arrow}</button>`
+    `data-sort="${col}" aria-sort="${ariaSort}">` +
+    `<span class="hd-full">${label}</span><span class="hd-short">${short}</span>${arrow}</button>`
   );
 }
 
@@ -68,9 +69,9 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, m
   const medal = ['#BA7517', '#888780', '#993C1D'];
   const head =
     '<div class="row head"><div>#</div><div>Player</div>' +
-    sortHead('events', 'Events', sort) +
-    sortHead('points', 'Points', sort) +
-    sortHead('ppe', 'Pts/Event', sort) +
+    sortHead('events', 'Events', 'Ev', sort) +
+    sortHead('points', 'Points', 'Pts', sort) +
+    sortHead('ppe', 'Pts/Event', 'P/E', sort) +
     '<div class="num" title="Change">±</div>' +
     '</div>';
   const body = rows
@@ -80,7 +81,7 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, m
       return (
         `<div class="row">` +
         `<div class="rank" style="color:${color}">${rank}</div>` +
-        `<div class="player"><span class="avatar">${initials(row.name)}</span>${row.name}</div>` +
+        `<div class="player"><span class="avatar">${initials(row.name)}</span><span class="pname">${row.name}</span></div>` +
         `<div class="num">${row.events}</div>` +
         `<div class="num strong">${row.points}<button class="why" data-index="${index}" aria-label="Points breakdown for ${row.name}">?</button></div>` +
         `<div class="num">${perEvent(row)}</div>` +
