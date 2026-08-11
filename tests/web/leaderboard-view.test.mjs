@@ -17,6 +17,22 @@ test('shows an empty state when there are no rows', () => {
   assert.match(renderLeaderboard([]), /No results/);
 });
 
+test('wraps the player name in a truncatable element', () => {
+  const html = renderLeaderboard([{ name: 'Vladislavs L', points: 9, events: 2, breakdown: [] }]);
+  assert.match(html, /class="pname">Vladislavs L<\/span>/);
+});
+
+test('sortable headers carry a short label for narrow screens', () => {
+  const html = renderLeaderboard([{ name: 'Ann', points: 9, events: 2, breakdown: [] }]);
+  // full labels remain for wide screens
+  assert.match(html, /Events/);
+  assert.match(html, /Pts\/Event/);
+  // short variants exist for the mobile media query to swap in
+  assert.match(html, /class="hd-short">Ev</);
+  assert.match(html, /class="hd-short">Pts</);
+  assert.match(html, /class="hd-short">P\/E</);
+});
+
 test('renderLeaderboard adds one breakdown button per row', () => {
   const html = renderLeaderboard([
     { name: 'Ann Lee', points: 9, events: 1, breakdown: [] },
