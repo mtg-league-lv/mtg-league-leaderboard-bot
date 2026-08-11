@@ -77,6 +77,40 @@ test('renders a standings-only event as a ranked table, not byes', () => {
   assert.match(html, />6</);  // Vlad: 3*2+0
 });
 
+test('standings table is wrapped in a .standings container with its own grid', () => {
+  const legacy = { name: 'Monday Standard', date: '2026-07-20', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Elliot N', game_wins: null, record: rec(3, 0, 0) }, player2: null },
+    ] },
+  ] };
+  const html = renderTournament(legacy);
+  assert.match(html, /class="standings"/);
+});
+
+test('standings wraps the player name in a truncatable element', () => {
+  const legacy = { name: 'Monday Standard', date: '2026-07-20', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Vladislavs K', game_wins: null, record: rec(3, 0, 0) }, player2: null },
+    ] },
+  ] };
+  const html = renderTournament(legacy);
+  assert.match(html, /class="pname">Vladislavs K<\/span>/);
+});
+
+test('deck info is wrapped in a single .deck-info group (pips + name)', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), deck_colours: 'WU', deck: 'Azorius Control' },
+        player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.match(html, /class="deck-info">/);
+  // the mana pips and the deck name live inside the group
+  assert.match(html, /class="deck-info">[\s\S]*mana-colours[\s\S]*deck-name[\s\S]*<\/span>/);
+});
+
 test('a normal pairing event still renders pairings (regression)', () => {
   const t = { name: 'A', date: '2026-07-06', rounds: [
     { round: 1, pairings: [

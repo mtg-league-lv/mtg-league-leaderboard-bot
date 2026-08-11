@@ -141,6 +141,8 @@ select {
 }
 .row.head { color: var(--muted); font-size: 12px; }
 .hd-short { display: none; }
+/* The standings table has its own 4-column shape (#, Player, Record, Points). */
+.standings .row { grid-template-columns: 30px minmax(0, 1fr) 84px 60px; }
 .move { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .move.up { color: var(--win); }
 .move.down { color: var(--down); }
@@ -162,7 +164,7 @@ select {
 .num { text-align: right; }
 .num.strong { font-weight: 500; }
 .player { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .avatar {
   width: 30px;
   height: 30px;
@@ -206,6 +208,7 @@ select {
 .score { text-align: center; font-size: 15px; font-variant-numeric: tabular-nums; }
 .mana-colours { display: inline-flex; align-items: center; }
 .mana { height: 15px; width: 15px; vertical-align: -2px; margin: 0 1px; }
+.deck-info { display: inline-flex; align-items: center; min-width: 0; }
 .deck-name { margin-left: 6px; font-size: 12px; color: var(--muted); }
 .non-league {
   margin-left: 6px;
@@ -263,4 +266,14 @@ select {
   .why { margin-left: 3px; }
   .hd-full { display: none; }
   .hd-short { display: inline; }
+
+  /* Standings: 4 columns sized for #, Player, Record, Points. */
+  .standings .row { grid-template-columns: 24px minmax(0, 1fr) 64px 44px; }
+
+  /* Pairings + standings: wrap each player's content so the deck (pips + name)
+     drops to a second line while the name/record stay on the first. */
+  .side, .player { flex-wrap: wrap; }
+  .side .deck-info, .player .deck-info { order: 1; flex-basis: 100%; }
+  .side.right .deck-info { justify-content: flex-end; }
+  .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }

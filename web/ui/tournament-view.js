@@ -20,7 +20,9 @@ function manaIcons(colours) {
 function deckInfo(player) {
   const icons = manaIcons(player.deck_colours);
   const name = player.deck ? `<span class="deck-name">${player.deck}</span>` : '';
-  return icons + name;
+  const inner = icons + name;
+  // Group pips + name so it can move to its own line on narrow screens.
+  return inner ? `<span class="deck-info">${inner}</span>` : '';
 }
 
 function leagueTag(player) {
@@ -75,14 +77,14 @@ function renderStandings(tournament) {
       return (
         `<div class="row">` +
         `<div class="rank">${rank}</div>` +
-        `<div class="player">${player.name}${deckInfo(player)}${leagueTag(player)}</div>` +
+        `<div class="player"><span class="pname">${player.name}</span>${deckInfo(player)}${leagueTag(player)}</div>` +
         `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
         `<div class="num strong">${points}</div>` +
         `</div>`
       );
     })
     .join('');
-  return header + head + body;
+  return `<div class="standings">${header + head + body}</div>`;
 }
 
 export function renderTournament(tournament) {
