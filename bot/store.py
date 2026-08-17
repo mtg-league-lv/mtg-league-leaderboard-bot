@@ -77,7 +77,7 @@ class Store:
         resp = (
             self._db.table("round_results")
             .select(
-                "tournament_id, round, player_key, player_name, game_wins, "
+                "tournament_id, round, pairing, player_key, player_name, game_wins, "
                 "record_wins, record_draws, tournaments!inner(event_date)"
             )
             .gte("tournaments.event_date", start.isoformat())
@@ -98,6 +98,7 @@ class Store:
                     "record_wins": row["record_wins"],
                     "record_draws": row["record_draws"],
                     "game_wins": row["game_wins"] or 0,
+                    "pairing": row.get("pairing"),
                     "_round": row["round"],
                 }
             else:
@@ -107,6 +108,7 @@ class Store:
                     cur["record_wins"] = row["record_wins"]
                     cur["record_draws"] = row["record_draws"]
                     cur["player_name"] = row["player_name"]
+                    cur["pairing"] = row.get("pairing")
         return [{k: v for k, v in r.items() if k != "_round"} for r in reduced.values()]
 
     def fetch_results_in_window(self, start: date, end: date) -> list[dict]:

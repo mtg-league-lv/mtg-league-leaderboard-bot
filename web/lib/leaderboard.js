@@ -21,11 +21,12 @@ export function points(record) {
   return record.wins * 3 + record.draws;
 }
 
-function accumulate(stats, player) {
+function accumulate(stats, player, pairing) {
   const s = stats[player.name] || { record: null, gameWins: 0, isLeague: true };
   s.record = player.record; // rounds are in order, so this ends as the final record
   s.gameWins += player.game_wins || 0;
   s.isLeague = player.is_league !== false;
+  s.pairing = pairing; // rounds are in order, so this ends as the final pairing
   stats[player.name] = s;
 }
 
@@ -33,8 +34,8 @@ export function playerTournamentStats(tournament) {
   const stats = {};
   for (const round of tournament.rounds) {
     for (const pairing of round.pairings) {
-      accumulate(stats, pairing.player1);
-      if (pairing.player2) accumulate(stats, pairing.player2);
+      accumulate(stats, pairing.player1, pairing.pairing);
+      if (pairing.player2) accumulate(stats, pairing.player2, pairing.pairing);
     }
   }
   return stats;
@@ -46,12 +47,28 @@ function plural(n, word) {
   return `${n} ${n === 1 ? word : word + 's'}`;
 }
 
+// Standings-shaped events store the organiser's final ranking in `pairing`, one
+// player per pairing. That ranking already accounts for tiebreakers the data does
+// not carry (OMW%/GW%/OGW%), so it is authoritative. In pairing-shaped events two
+// players share a `pairing` — it is a table number, not a rank — so the order has
+// to be derived from the records instead.
+function rankPlayers(players) {
+  const pairings = players.map(p => p.pairing);
+  const isStandings =
+    pairings.every(p => p !== undefined && p !== null) &&
+    new Set(pairings).size === players.length;
+  if (isStandings) return [...players].sort((a, b) => a.pairing - b.pairing);
+  return [...players].sort(
+    (a, b) => b.mp - a.mp || b.gameWins - a.gameWins || a.name.localeCompare(b.name),
+  );
+}
+
 export function tournamentScores(tournament) {
   const stats = playerTournamentStats(tournament);
   const summer = seasonKey(tournament.date) === '2026-2';
-  const ranked = Object.entries(stats)
-    .map(([name, s]) => ({ name, ...s, mp: points(s.record) }))
-    .sort((a, b) => b.mp - a.mp || b.gameWins - a.gameWins || a.name.localeCompare(b.name));
+  const ranked = rankPlayers(
+    Object.entries(stats).map(([name, s]) => ({ name, ...s, mp: points(s.record) })),
+  );
   const bonus = [3, 2, 1];
   const scores = {};
   ranked.forEach((p, i) => {

@@ -185,3 +185,46 @@ test('breakdown omits zero components and uses ×3 off-summer', () => {
   assert.deepEqual(bob.breakdown[0].items, []);
   assert.equal(bob.points, 0);
 });
+
+test('a standings event ranks by its stored pairing order, not by name', () => {
+  // One player per pairing: `pairing` is the organiser's final rank, which
+  // already encodes tiebreakers (OMW%/GW%/OGW%) the data does not carry.
+  const t = { id: 't', date: '2026-08-17', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: null, record: rec(3, 0, 0) }, player2: null },
+      { pairing: 2, player1: { name: 'Zed', game_wins: null, record: rec(2, 0, 1) }, player2: null },
+      { pairing: 3, player1: { name: 'Bob', game_wins: null, record: rec(2, 0, 1) }, player2: null },
+      { pairing: 4, player1: { name: 'Cara', game_wins: null, record: rec(2, 0, 1) }, player2: null },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-2');
+  assert.deepEqual(board.map(r => [r.name, r.points]), [
+    ['Ann', 10],   // 1st(3) + 3 wins(6) + attendance(1)
+    ['Zed', 7],    // 2nd(2) + 2 wins(4) + attendance(1)
+    ['Bob', 6],    // 3rd(1) + 2 wins(4) + attendance(1)
+    ['Cara', 5],   // no bonus
+  ]);
+});
+
+test('a standings event labels the placement it actually awarded', () => {
+  const t = { id: 't', name: 'Monday Standard', date: '2026-08-17', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: null, record: rec(2, 0, 1) }, player2: null },
+      { pairing: 2, player1: { name: 'Aaa', game_wins: null, record: rec(2, 0, 1) }, player2: null },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-2');
+  const ann = board.find(r => r.name === 'Ann');
+  assert.deepEqual(ann.breakdown[0].items[0], { label: '1st place', points: 3 });
+});
+
+test('a pairing event ignores pairing numbers when scoring placement', () => {
+  // Two players share pairing 1, so it is a table number and not a rank.
+  const t = { id: 't', date: '2026-07-10', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Zed', game_wins: 0, record: rec(0, 0, 1) }, player2: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) } },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-2');
+  assert.deepEqual(board.map(r => [r.name, r.points]), [['Ann', 6], ['Zed', 3]]);
+});

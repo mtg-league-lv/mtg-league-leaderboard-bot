@@ -69,9 +69,21 @@ def _is_summer_2026(event_date) -> bool:
     return year == 2026 and month in (6, 7, 8)
 
 
-def _tournament_scores(rows: list[dict]) -> dict:
-    summer = _is_summer_2026(rows[0]["event_date"])
-    ranked = sorted(
+def _ranked(rows: list[dict]) -> list[dict]:
+    """Order a tournament's rows by finishing position.
+
+    Standings-shaped events store the organiser's final ranking in `pairing`,
+    one row per player. That ranking already accounts for tiebreakers we do not
+    store (OMW%/GW%/OGW%), so recomputing an order here would drop them and fall
+    back to alphabetical. Prefer the stored ranking when it is one.
+
+    In pairing-shaped events two players share a `pairing` — it is a table
+    number, not a rank — so derive the order from the records instead.
+    """
+    pairings = [r.get("pairing") for r in rows]
+    if all(p is not None for p in pairings) and len(set(pairings)) == len(rows):
+        return sorted(rows, key=lambda r: r["pairing"])
+    return sorted(
         rows,
         key=lambda r: (
             -(3 * r["record_wins"] + r["record_draws"]),
@@ -79,6 +91,11 @@ def _tournament_scores(rows: list[dict]) -> dict:
             r["player_name"].lower(),
         ),
     )
+
+
+def _tournament_scores(rows: list[dict]) -> dict:
+    summer = _is_summer_2026(rows[0]["event_date"])
+    ranked = _ranked(rows)
     bonus = [3, 2, 1]
     out: dict = {}
     for i, r in enumerate(ranked):
