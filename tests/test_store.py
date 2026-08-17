@@ -195,3 +195,17 @@ def test_fetch_tournament_stats_reduces_final_record_and_sums_game_wins():
     assert by_key["ann"]["tournament_id"] == 7
     assert by_key["bob"]["game_wins"] == 1
     assert ("gte", "tournaments.event_date", "2026-07-01") in rr.calls
+
+
+def test_fetch_tournament_stats_carries_final_round_pairing():
+    """The leaderboard needs `pairing` to honour a standings event's own ranking."""
+    rows = [
+        {"tournament_id": 7, "round": 1, "pairing": 5, "player_key": "ann", "player_name": "Ann",
+         "game_wins": 2, "record_wins": 1, "record_draws": 0, "tournaments": {"event_date": "2026-07-06"}},
+        {"tournament_id": 7, "round": 2, "pairing": 2, "player_key": "ann", "player_name": "Ann",
+         "game_wins": 1, "record_wins": 2, "record_draws": 0, "tournaments": {"event_date": "2026-07-06"}},
+    ]
+    rr = FakeTable(rows=rows)
+    store = Store(FakeSupabase({"round_results": rr}))
+    out = store.fetch_tournament_stats(date(2026, 7, 1), date(2026, 7, 31))
+    assert out[0]["pairing"] == 2

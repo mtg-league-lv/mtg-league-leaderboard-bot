@@ -158,3 +158,57 @@ def test_season_totals_non_summer_uses_standard():
     stats = [_stat(1, "ann", "Ann", 1, 0, 2, date_="2026-04-12")]
     totals = season_totals(stats, {"ann"})
     assert totals[0].points == 3
+
+
+def _standing(tid, pairing, key, name, w, d, l=0, date_="2026-07-06"):
+    """A standings-shaped row: one row per player, `pairing` is the final rank."""
+    return {"tournament_id": tid, "pairing": pairing, "player_key": key,
+            "player_name": name, "record_wins": w, "record_draws": d,
+            "record_losses": l, "game_wins": None, "event_date": date_}
+
+
+def test_season_totals_uses_stored_rank_for_placement_bonus():
+    """Standings rows carry the organiser's ranking in `pairing`.
+
+    Tiebreakers behind that ranking (OMW%/GW%/OGW%) are not stored, so the
+    placement bonus must follow `pairing` rather than be recomputed.
+    """
+    stats = [
+        _standing(1, 1, "ann", "Ann", 3, 0),
+        _standing(1, 2, "zed", "Zed", 2, 0, 1),   # ranked above Bob on tiebreakers
+        _standing(1, 3, "bob", "Bob", 2, 0, 1),
+        _standing(1, 4, "cara", "Cara", 2, 0, 1),
+    ]
+    by = {t.player_key: t for t in season_totals(stats, {"ann", "zed", "bob", "cara"})}
+    # summer: placement + 2*wins + draws + attendance
+    assert by["ann"].points == 3 + 6 + 1      # 1st
+    assert by["zed"].points == 2 + 4 + 1      # 2nd, despite sorting last by name
+    assert by["bob"].points == 1 + 4 + 1      # 3rd
+    assert by["cara"].points == 0 + 4 + 1     # 4th, no bonus
+
+
+def test_season_totals_ignores_pairing_when_it_is_a_table_number():
+    """In pairing-shaped events two players share a `pairing`, so it is a table
+    number, not a rank — placement must still be computed from records."""
+    stats = [
+        {"tournament_id": 1, "pairing": 1, "player_key": "ann", "player_name": "Ann",
+         "record_wins": 0, "record_draws": 0, "game_wins": 1, "event_date": "2026-07-06"},
+        {"tournament_id": 1, "pairing": 1, "player_key": "bob", "player_name": "Bob",
+         "record_wins": 2, "record_draws": 0, "game_wins": 4, "event_date": "2026-07-06"},
+    ]
+    by = {t.player_key: t for t in season_totals(stats, {"ann", "bob"})}
+    assert by["bob"].points == 3 + 4 + 1      # 1st on record
+    assert by["ann"].points == 2 + 0 + 1      # 2nd
+
+
+def test_season_totals_falls_back_when_pairing_missing():
+    stats = [_stat(1, "ann", "Ann", 2, 0, 4), _stat(1, "bob", "Bob", 0, 0, 1)]
+    by = {t.player_key: t for t in season_totals(stats, {"ann", "bob"})}
+    assert by["ann"].points == 3 + 4 + 1
+    assert by["bob"].points == 2 + 0 + 1
+
+
+def test_season_totals_stored_rank_applies_only_to_top_three():
+    stats = [_standing(1, i, f"p{i}", f"P{i}", 1, 0, 2) for i in range(1, 6)]
+    by = {t.player_key: t for t in season_totals(stats, {f"p{i}" for i in range(1, 6)})}
+    assert [by[f"p{i}"].points for i in range(1, 6)] == [6, 5, 4, 3, 3]
