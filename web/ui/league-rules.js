@@ -11,7 +11,7 @@ const RANKS = [
 
 function ranks() {
   return RANKS
-    .map(([name, desc]) => `<div class="rank"><div class="rank-name">${name}</div><div class="rank-desc">${desc}</div></div>`)
+    .map(([name, desc]) => `<div class="lr-rank"><div class="lr-rank-name">${name}</div><div class="lr-rank-desc">${desc}</div></div>`)
     .join('');
 }
 
@@ -82,6 +82,6 @@ export function renderLeagueRules() {
 
   <h1>🔮 MTG League Rank System</h1>
   <p>Climb through the ranks of our league and prove your mastery across the Multiverse. Your role reflects your experience, dedication, and victories.</p>
-  <div class="ranks">${ranks()}</div>
+  <div class="lr-ranks">${ranks()}</div>
 </div>`;
 }

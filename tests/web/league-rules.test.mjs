@@ -29,5 +29,5 @@ test('lists all eight ranks as rank cards', () => {
   ]) {
     assert.ok(html.includes(rank), `missing rank: ${rank}`);
   }
-  assert.equal((html.match(/class="rank"/g) || []).length, 8);
+  assert.equal((html.match(/class="lr-rank"/g) || []).length, 8);
 });
