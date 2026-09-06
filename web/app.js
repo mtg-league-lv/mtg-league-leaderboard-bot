@@ -3,6 +3,7 @@ import { seasonLeaderboard, seasonLeaderboardBefore } from './lib/leaderboard.js
 import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
 import { renderRules } from './ui/rules.js';
+import { renderLeagueRules } from './ui/league-rules.js';
 
 const state = { tournaments: [] };
 
@@ -21,6 +22,7 @@ async function boot() {
   setupLeaderboard();
   setupTournaments();
   setupRules();
+  document.getElementById('rules-view').innerHTML = renderLeagueRules();
 }
 
 const SUMMER_2026 = '2026-2';
@@ -50,19 +52,20 @@ function setupRules() {
 }
 
 function setupTabs() {
-  const tabLb = document.getElementById('tab-lb');
-  const tabTd = document.getElementById('tab-td');
-  const viewLb = document.getElementById('view-lb');
-  const viewTd = document.getElementById('view-td');
-  function show(which) {
-    const isLb = which === 'lb';
-    viewLb.hidden = !isLb;
-    viewTd.hidden = isLb;
-    tabLb.setAttribute('aria-selected', String(isLb));
-    tabTd.setAttribute('aria-selected', String(!isLb));
+  const tabs = [
+    { btn: 'tab-lb', view: 'view-lb' },
+    { btn: 'tab-td', view: 'view-td' },
+    { btn: 'tab-rules', view: 'view-rules' },
+  ].map(t => ({ btn: document.getElementById(t.btn), view: document.getElementById(t.view) }));
+  function show(active) {
+    for (const t of tabs) {
+      const on = t === active;
+      t.view.hidden = !on;
+      t.btn.setAttribute('aria-selected', String(on));
+    }
   }
-  tabLb.addEventListener('click', () => show('lb'));
-  tabTd.addEventListener('click', () => show('td'));
+  for (const t of tabs) t.btn.addEventListener('click', () => show(t));
+  show(tabs[0]);
 }
 
 function setupLeaderboard() {
