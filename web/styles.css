@@ -271,7 +271,6 @@ select {
   font-size: 13px;
   color: var(--muted);
 }
-.rules-attrib { font-size: 12px; color: var(--muted); }
 .ranks { display: grid; gap: 8px; margin: 12px 0; }
 .rank { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
 .rank-name { font-weight: 600; margin-bottom: 3px; }

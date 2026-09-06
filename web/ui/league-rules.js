@@ -72,7 +72,6 @@ export function renderLeagueRules() {
   <p>If a participant wins the weekly Standard tournament, each other participant may ban 1 card from the winner's deck (not a whole set of cards, only one copy). The people eligible for banning cards must also be part of the challenge.</p>
   <p>Banned cards remain prohibited from the winner's deck until they no longer win a tournament. If they win again while previous bans are still in effect, new bans stack with the old ones.</p>
   <p class="rules-note">Note: if you only run 2 copies of a card in your deck and both get banned, you cannot pull 2 more copies of the same card from your collection to replace them.</p>
-  <p class="rules-attrib">Rush (Toms.L) [GoCA] — 02.06.2025</p>
 
   <h2>Store Championships</h2>
   <p>To ensure everyone has a fair chance at winning a Store Championship event, all bans are ignored for this event. The first-place finisher will not receive any card bans, and participants who had bans from previous weeks can compete as if those bans never existed. Any bans held before the Store Championship still apply when the next weekly Standard tournament takes place.</p>
