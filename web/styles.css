@@ -253,6 +253,29 @@ select {
 .bd-subtotal { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 3px; color: var(--muted); }
 .bd-total { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 500; }
 
+/* League rules page (Rules tab) */
+.rules-page { font-size: 14px; line-height: 1.55; }
+.rules-page h1 { font-size: 20px; font-weight: 600; margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.rules-page h1:first-child { margin-top: 0; }
+.rules-page h2 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+.rules-page h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 4px; }
+.rules-page p { margin: 8px 0; }
+.rules-page ul { margin: 8px 0; padding-left: 20px; }
+.rules-page li { margin: 5px 0; }
+.rules-page .rules-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rules-page .lr-ranks { display: grid; gap: 8px; margin: 12px 0; }
+.rules-page .lr-rank { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
+.rules-page .lr-rank-name { font-weight: 600; margin-bottom: 3px; }
+.rules-page .lr-rank-desc { font-size: 13px; color: var(--muted); white-space: pre-line; }
+
 /* Narrow phones: reclaim width so the player name has room and all columns stay aligned. */
 @media (max-width: 480px) {
   main { padding: 16px 12px; }
