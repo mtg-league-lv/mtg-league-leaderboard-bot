@@ -1,4 +1,4 @@
-import { seasonKey, seasonLabel } from './lib/season.js';
+import { seasonKey, seasonLabel, tournamentsForSeason } from './lib/season.js';
 import { seasonLeaderboard, seasonLeaderboardBefore } from './lib/leaderboard.js';
 import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
@@ -138,16 +138,31 @@ function setupLeaderboard() {
 }
 
 function setupTournaments() {
+  const seasonSelect = document.getElementById('td-season');
   const select = document.getElementById('t-sel');
-  const sorted = [...state.tournaments].sort((a, b) => b.date.localeCompare(a.date));
-  select.innerHTML = sorted
-    .map(t => `<option value="${t.id}">${t.date} — ${t.name}</option>`)
+
+  const byKey = new Map();
+  for (const t of state.tournaments) byKey.set(seasonKey(t.date), seasonLabel(t.date));
+  const keys = [...byKey.keys()].sort().reverse();
+  seasonSelect.innerHTML = keys
+    .map(k => `<option value="${k}">${byKey.get(k)}</option>`)
     .join('');
+
+  function populateTournaments() {
+    const list = tournamentsForSeason(state.tournaments, seasonSelect.value);
+    select.innerHTML = list
+      .map(t => `<option value="${t.id}">${t.date} — ${t.name}</option>`)
+      .join('');
+  }
   function render() {
     const tournament = state.tournaments.find(t => t.id === select.value);
-    document.getElementById('td-body').innerHTML = renderTournament(tournament);
+    document.getElementById('td-body').innerHTML = tournament
+      ? renderTournament(tournament)
+      : '<div class="empty">No tournaments this season.</div>';
   }
+  seasonSelect.addEventListener('change', () => { populateTournaments(); render(); });
   select.addEventListener('change', render);
+  populateTournaments();
   render();
 }
 
