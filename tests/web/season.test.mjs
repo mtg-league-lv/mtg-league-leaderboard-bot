@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { seasonOf, seasonKey, seasonLabel } from '../../web/lib/season.js';
+import { seasonOf, seasonKey, seasonLabel, tournamentsForSeason } from '../../web/lib/season.js';
 
 test('seasonOf maps months to meteorological seasons', () => {
   assert.deepEqual(seasonOf('2026-01-15'), { year: 2026, season: 'winter', index: 0 });
@@ -27,4 +27,23 @@ test('seasonLabel formats season and year', () => {
   assert.equal(seasonLabel('2026-07-20'), 'Summer 2026');
   assert.equal(seasonLabel('2025-12-05'), 'Winter 2026');
   assert.equal(seasonLabel('2026-04-01'), 'Spring 2026');
+});
+
+test('tournamentsForSeason returns only that season, newest first', () => {
+  const ts = [
+    { id: 'a', date: '2026-07-06' }, // Summer 2026
+    { id: 'b', date: '2026-08-31' }, // Summer 2026
+    { id: 'c', date: '2026-04-12' }, // Spring 2026
+    { id: 'd', date: '2026-08-10' }, // Summer 2026
+  ];
+  const summer = tournamentsForSeason(ts, '2026-2');
+  assert.deepEqual(summer.map(t => t.id), ['b', 'd', 'a']); // desc by date
+  assert.deepEqual(tournamentsForSeason(ts, '2026-1').map(t => t.id), ['c']);
+  assert.deepEqual(tournamentsForSeason(ts, '2025-0'), []);
+});
+
+test('tournamentsForSeason does not mutate the input', () => {
+  const ts = [{ id: 'a', date: '2026-07-06' }, { id: 'b', date: '2026-08-31' }];
+  tournamentsForSeason(ts, '2026-2');
+  assert.deepEqual(ts.map(t => t.id), ['a', 'b']);
 });

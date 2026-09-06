@@ -24,3 +24,10 @@ export function seasonLabel(dateString) {
   const { year, season } = seasonOf(dateString);
   return `${_LABELS[season]} ${year}`;
 }
+
+// Tournaments belonging to the given season key, newest first (does not mutate).
+export function tournamentsForSeason(tournaments, key) {
+  return tournaments
+    .filter(t => seasonKey(t.date) === key)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
