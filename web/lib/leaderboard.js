@@ -27,6 +27,7 @@ function accumulate(stats, player, pairing) {
   s.gameWins += player.game_wins || 0;
   s.isLeague = player.is_league !== false;
   s.pairing = pairing; // rounds are in order, so this ends as the final pairing
+  if (player.standing != null) s.standing = player.standing; // official final rank, if any
   stats[player.name] = s;
 }
 
@@ -52,12 +53,20 @@ function plural(n, word) {
 // not carry (OMW%/GW%/OGW%), so it is authoritative. In pairing-shaped events two
 // players share a `pairing` — it is a table number, not a rank — so the order has
 // to be derived from the records instead.
+function allUnique(values, count) {
+  return values.every(v => v !== undefined && v !== null) && new Set(values).size === count;
+}
+
 function rankPlayers(players) {
-  const pairings = players.map(p => p.pairing);
-  const isStandings =
-    pairings.every(p => p !== undefined && p !== null) &&
-    new Set(pairings).size === players.length;
-  if (isStandings) return [...players].sort((a, b) => a.pairing - b.pairing);
+  // An explicit official `standing` wins — round-based events carry it separately
+  // from `pairing` (which is a table number there).
+  if (allUnique(players.map(p => p.standing), players.length)) {
+    return [...players].sort((a, b) => a.standing - b.standing);
+  }
+  // Standings-shaped events store the ranking in `pairing` (one player per pairing).
+  if (allUnique(players.map(p => p.pairing), players.length)) {
+    return [...players].sort((a, b) => a.pairing - b.pairing);
+  }
   return [...players].sort(
     (a, b) => b.mp - a.mp || b.gameWins - a.gameWins || a.name.localeCompare(b.name),
   );

@@ -19,6 +19,7 @@ def _player_obj(row: dict, league_keys) -> dict:
         "is_league": True if league_keys is None else row["player_key"] in league_keys,
         "deck": row.get("player_deck"),
         "deck_colours": row.get("player_deck_colours"),
+        "standing": row.get("final_rank"),
     }
 
 
@@ -59,7 +60,7 @@ def build_site_data(tournaments: list[dict], results: list[dict], league_keys=No
 
 _TOURNAMENT_COLS = "id, name, event_date"
 _RESULT_COLS = (
-    "tournament_id, round, pairing, player_name, player_key, "
+    "tournament_id, round, pairing, final_rank, player_name, player_key, "
     "game_wins, record_wins, record_draws, record_losses, "
     "player_deck, player_deck_colours"
 )

@@ -212,3 +212,37 @@ def test_season_totals_stored_rank_applies_only_to_top_three():
     stats = [_standing(1, i, f"p{i}", f"P{i}", 1, 0, 2) for i in range(1, 6)]
     by = {t.player_key: t for t in season_totals(stats, {f"p{i}" for i in range(1, 6)})}
     assert [by[f"p{i}"].points for i in range(1, 6)] == [6, 5, 4, 3, 3]
+
+
+def _round_row(tid, table, key, name, w, d, l=0, gw=0, final_rank=None, date_="2026-07-06"):
+    """A pairing-shaped row (`pairing` is a table number) that may also carry the
+    organiser's official `final_rank`."""
+    return {"tournament_id": tid, "pairing": table, "player_key": key,
+            "player_name": name, "record_wins": w, "record_draws": d,
+            "record_losses": l, "game_wins": gw, "final_rank": final_rank,
+            "event_date": date_}
+
+
+def test_season_totals_final_rank_overrides_computed_tiebreak():
+    """Round-based events store a table number in `pairing`, so placement is
+    normally computed. When the authoritative `final_rank` is present it wins,
+    even against the game-win/name tiebreak."""
+    stats = [
+        _round_row(1, 2, "sergey", "Sergey", 3, 0, gw=6, final_rank=1),
+        _round_row(1, 1, "raitis", "Raitis", 3, 0, gw=6, final_rank=2),
+    ]
+    by = {t.player_key: t for t in season_totals(stats, {"sergey", "raitis"})}
+    # Equal record and game wins: computed order would put Raitis first by name;
+    # final_rank forces Sergey 1st.
+    assert by["sergey"].points == 3 + 6 + 1   # 1st
+    assert by["raitis"].points == 2 + 6 + 1   # 2nd
+
+
+def test_season_totals_ignores_final_rank_when_not_all_present():
+    stats = [
+        _round_row(1, 1, "ann", "Ann", 2, 0, gw=4, final_rank=None),
+        _round_row(1, 1, "bob", "Bob", 0, 0, l=2, gw=1, final_rank=None),
+    ]
+    by = {t.player_key: t for t in season_totals(stats, {"ann", "bob"})}
+    assert by["ann"].points == 3 + 4 + 1      # 1st on record
+    assert by["bob"].points == 2 + 0 + 1
