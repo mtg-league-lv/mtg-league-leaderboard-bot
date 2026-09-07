@@ -78,8 +78,13 @@ def _ranked(rows: list[dict]) -> list[dict]:
     back to alphabetical. Prefer the stored ranking when it is one.
 
     In pairing-shaped events two players share a `pairing` — it is a table
-    number, not a rank — so derive the order from the records instead.
+    number, not a rank — so derive the order from the records instead, unless an
+    explicit `final_rank` is stored (round-based events with an authoritative
+    standings source carry it separately from the table number).
     """
+    ranks = [r.get("final_rank") for r in rows]
+    if all(x is not None for x in ranks) and len(set(ranks)) == len(rows):
+        return sorted(rows, key=lambda r: r["final_rank"])
     pairings = [r.get("pairing") for r in rows]
     if all(p is not None for p in pairings) and len(set(pairings)) == len(rows):
         return sorted(rows, key=lambda r: r["pairing"])

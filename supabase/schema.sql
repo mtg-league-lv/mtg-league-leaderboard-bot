@@ -43,3 +43,6 @@ alter table round_results add column if not exists player_deck            text;
 alter table round_results add column if not exists opponent_deck          text;
 alter table round_results add column if not exists player_deck_colours     text;
 alter table round_results add column if not exists opponent_deck_colours   text;
+-- Official final standing (1 = winner) from an authoritative standings source;
+-- null when placement should be computed from records.
+alter table round_results add column if not exists final_rank             smallint;

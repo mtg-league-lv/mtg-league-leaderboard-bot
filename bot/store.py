@@ -77,7 +77,7 @@ class Store:
         resp = (
             self._db.table("round_results")
             .select(
-                "tournament_id, round, pairing, player_key, player_name, game_wins, "
+                "tournament_id, round, pairing, final_rank, player_key, player_name, game_wins, "
                 "record_wins, record_draws, tournaments!inner(event_date)"
             )
             .gte("tournaments.event_date", start.isoformat())
@@ -99,10 +99,13 @@ class Store:
                     "record_draws": row["record_draws"],
                     "game_wins": row["game_wins"] or 0,
                     "pairing": row.get("pairing"),
+                    "final_rank": row.get("final_rank"),
                     "_round": row["round"],
                 }
             else:
                 cur["game_wins"] += row["game_wins"] or 0
+                if cur.get("final_rank") is None and row.get("final_rank") is not None:
+                    cur["final_rank"] = row["final_rank"]
                 if row["round"] > cur["_round"]:
                     cur["_round"] = row["round"]
                     cur["record_wins"] = row["record_wins"]

@@ -228,3 +228,20 @@ test('a pairing event ignores pairing numbers when scoring placement', () => {
   const board = seasonLeaderboard([t], '2026-2');
   assert.deepEqual(board.map(r => [r.name, r.points]), [['Ann', 6], ['Zed', 3]]);
 });
+
+test('official standing overrides the computed placement tiebreak', () => {
+  // Round-based match: pairing is a table number (shared), so placement is
+  // normally computed. Raitis has more game wins, so computed order puts him 1st;
+  // the official `standing` must force Sergey to 1st instead.
+  const t = { id: 't', name: 'Monday', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Sergey', game_wins: 2, record: rec(1, 0, 0), standing: 1 },
+        player2: { name: 'Raitis', game_wins: 5, record: rec(1, 0, 0), standing: 2 } },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-2');
+  const by = Object.fromEntries(board.map(r => [r.name, r.points]));
+  assert.equal(by['Sergey'], 3 + 2 + 1); // 1st: placement 3 + 2*wins + attendance
+  assert.equal(by['Raitis'], 2 + 2 + 1); // 2nd
+});
