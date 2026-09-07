@@ -57,7 +57,7 @@ function allUnique(values, count) {
   return values.every(v => v !== undefined && v !== null) && new Set(values).size === count;
 }
 
-function rankPlayers(players) {
+export function rankPlayers(players) {
   // An explicit official `standing` wins — round-based events carry it separately
   // from `pairing` (which is a table number there).
   if (allUnique(players.map(p => p.standing), players.length)) {

@@ -181,6 +181,7 @@ select {
 .t-header { margin-bottom: 12px; }
 .t-name { font-size: 16px; font-weight: 500; }
 .t-meta { font-size: 13px; color: var(--muted); }
+.section-label { font-size: 15px; font-weight: 600; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
 .round-label { font-size: 13px; color: var(--muted); font-weight: 500; margin: 14px 0 6px; }
 .pairing {
   display: grid;
