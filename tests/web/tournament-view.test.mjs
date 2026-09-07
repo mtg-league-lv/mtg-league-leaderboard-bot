@@ -134,11 +134,13 @@ test('renders mana icons for deck colours in order, then the deck name', () => {
   const html = renderTournament(t);
   assert.ok(html.indexOf('icons/mana/W.svg') < html.indexOf('icons/mana/U.svg'));
   assert.ok(html.indexOf('icons/mana/U.svg') < html.indexOf('icons/mana/R.svg'));
-  assert.equal((html.match(/class="mana"/g) || []).length, 3);
+  // A pairing event now renders the deck in both the final-standings table and
+  // the round-by-round view, so each appears twice.
+  assert.equal((html.match(/class="mana"/g) || []).length, 6);
   assert.match(html, /Jeskai Control/);
   assert.ok(html.indexOf('icons/mana/R.svg') < html.indexOf('Jeskai Control'));
   // Icons are wrapped in a single element so the flex gap doesn't space them apart.
-  assert.equal((html.match(/class="mana-colours"/g) || []).length, 1);
+  assert.equal((html.match(/class="mana-colours"/g) || []).length, 2);
 });
 
 test('shows no deck info when deck and colours are empty', () => {
@@ -159,7 +161,7 @@ test('skips invalid colour characters (case-insensitive)', () => {
     ] },
   ] };
   const html = renderTournament(t);
-  assert.equal((html.match(/class="mana"/g) || []).length, 2);
+  assert.equal((html.match(/class="mana"/g) || []).length, 4); // standings + rounds
   assert.match(html, /icons\/mana\/W\.svg/);
   assert.match(html, /icons\/mana\/G\.svg/);
 });
@@ -184,7 +186,8 @@ test('shows one "Not from League" pill for a non-league player in pairings', () 
   ] };
   const html = renderTournament(t);
   assert.match(html, /Not from League/);
-  assert.equal((html.match(/Not from League/g) || []).length, 1);
+  // Shown in both the standings table and the round-by-round pairing.
+  assert.equal((html.match(/Not from League/g) || []).length, 2);
 });
 
 test('no pill for league players or a missing is_league flag', () => {
@@ -206,7 +209,8 @@ test('shows the pill on the bye player when non-league', () => {
     ] },
   ] };
   const html = renderTournament(t);
-  assert.equal((html.match(/Not from League/g) || []).length, 1);
+  // Standings table + the bye row in the round-by-round view.
+  assert.equal((html.match(/Not from League/g) || []).length, 2);
 });
 
 test('shows the pill in the standings-table view too', () => {
@@ -219,4 +223,31 @@ test('shows the pill in the standings-table view too', () => {
   const html = renderTournament(legacy);
   assert.match(html, /Not from League/);
   assert.equal((html.match(/Not from League/g) || []).length, 1);
+});
+
+test('a round-based event shows final standings on top, then the rounds', () => {
+  const t = { name: 'Monday', date: '2026-09-07', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Sergey', game_wins: 2, record: rec(1, 0, 0), standing: 1 },
+        player2: { name: 'Raitis', game_wins: 5, record: rec(1, 0, 0), standing: 2 } },
+    ] },
+    { round: 2, pairings: [
+      { pairing: 1,
+        player1: { name: 'Sergey', game_wins: 2, record: rec(2, 0, 0), standing: 1 },
+        player2: { name: 'Raitis', game_wins: 0, record: rec(1, 0, 1), standing: 2 } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  // Both sections present, standings before the rounds.
+  assert.match(html, /Final standings/);
+  assert.match(html, /Round 1/);
+  assert.ok(html.indexOf('Final standings') < html.indexOf('Round 1'));
+  assert.ok(html.indexOf('class="standings"') < html.indexOf('class="round-label"'));
+  // Standings order honours the official `standing` (Sergey 1st despite fewer game wins).
+  const s = html.indexOf('class="standings"');
+  const seg = html.slice(s, html.indexOf('class="round-label"'));
+  assert.ok(seg.indexOf('Sergey') < seg.indexOf('Raitis'));
+  // Final record used in the standings (Sergey 2-0-0 after round 2).
+  assert.match(seg, /2-0-0/);
 });

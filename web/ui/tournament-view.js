@@ -1,3 +1,5 @@
+import { points, rankPlayers } from '../lib/leaderboard.js';
+
 function recordChip(record) {
   return `<span class="chip">${record.wins}-${record.draws}-${record.losses}</span>`;
 }
@@ -59,44 +61,76 @@ function isStandingsEvent(tournament) {
   return pairings.length > 0 && pairings.every(pairing => pairing.player2 === null);
 }
 
-function renderStandings(tournament) {
-  const players = tournament.rounds
-    .flatMap(round => round.pairings)
-    .map(pairing => ({ rank: pairing.pairing, player: pairing.player1 }))
-    .sort((a, b) => a.rank - b.rank);
-  const header =
-    `<div class="t-header"><div class="t-name">${tournament.name}</div>` +
-    `<div class="t-meta">${tournament.date} · ${players.length} players</div></div>`;
+// Each player's final standing: their last record, summed game wins, deck and
+// league flag, ordered the same way the leaderboard ranks them (official
+// `standing` → `pairing`-as-rank for standings-shaped events → records).
+function finalStandings(tournament) {
+  const byName = new Map();
+  for (const round of tournament.rounds) {
+    for (const pairing of round.pairings) {
+      for (const p of [pairing.player1, pairing.player2]) {
+        if (!p) continue;
+        const cur = byName.get(p.name) || { name: p.name, gameWins: 0 };
+        cur.record = p.record; // rounds are in order, so this ends as the final record
+        cur.gameWins += p.game_wins || 0;
+        cur.is_league = p.is_league;
+        cur.deck = p.deck;
+        cur.deck_colours = p.deck_colours;
+        cur.pairing = pairing.pairing;
+        if (p.standing != null) cur.standing = p.standing;
+        byName.set(p.name, cur);
+      }
+    }
+  }
+  const players = [...byName.values()].map(p => ({ ...p, mp: points(p.record) }));
+  return rankPlayers(players).map((player, i) => ({ rank: i + 1, player }));
+}
+
+function renderStandingsTable(rows) {
   const head =
     '<div class="row head"><div>#</div><div>Player</div>' +
     '<div class="num">Record</div><div class="num">Points</div></div>';
-  const body = players
+  const body = rows
     .map(({ rank, player }) => {
       const r = player.record;
-      const points = r.wins * 3 + r.draws;
       return (
         `<div class="row">` +
         `<div class="rank">${rank}</div>` +
         `<div class="player"><span class="pname">${player.name}</span>${deckInfo(player)}${leagueTag(player)}</div>` +
         `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
-        `<div class="num strong">${points}</div>` +
+        `<div class="num strong">${points(r)}</div>` +
         `</div>`
       );
     })
     .join('');
-  return `<div class="standings">${header + head + body}</div>`;
+  return `<div class="standings">${head + body}</div>`;
+}
+
+function tournamentHeader(tournament, meta) {
+  return (
+    `<div class="t-header"><div class="t-name">${tournament.name}</div>` +
+    `<div class="t-meta">${tournament.date} · ${meta}</div></div>`
+  );
 }
 
 export function renderTournament(tournament) {
-  if (isStandingsEvent(tournament)) return renderStandings(tournament);
-  const header =
-    `<div class="t-header"><div class="t-name">${tournament.name}</div>` +
-    `<div class="t-meta">${tournament.date} · ${tournament.rounds.length} rounds</div></div>`;
+  const standings = finalStandings(tournament);
+  // Standings-only events (legacy imports) have no round-by-round detail.
+  if (isStandingsEvent(tournament)) {
+    return tournamentHeader(tournament, `${standings.length} players`) +
+      renderStandingsTable(standings);
+  }
   const rounds = tournament.rounds
     .map(round => {
       const pairings = round.pairings.map(pairingRow).join('');
       return `<div class="round-label">Round ${round.round}</div>${pairings}`;
     })
     .join('');
-  return header + rounds;
+  return (
+    tournamentHeader(tournament, `${standings.length} players · ${tournament.rounds.length} rounds`) +
+    '<div class="section-label">Final standings</div>' +
+    renderStandingsTable(standings) +
+    '<div class="section-label">Round by round</div>' +
+    rounds
+  );
 }
