@@ -94,7 +94,8 @@ test('standings wraps the player name in a truncatable element', () => {
     ] },
   ] };
   const html = renderTournament(legacy);
-  assert.match(html, /class="pname">Vladislavs K<\/span>/);
+  // The name is a profile link that keeps the truncatable `.pname` class.
+  assert.match(html, /class="player-link pname" href="#player\/Vladislavs%20K">Vladislavs K<\/a>/);
 });
 
 test('deck info is wrapped in a single .deck-info group (pips + name)', () => {

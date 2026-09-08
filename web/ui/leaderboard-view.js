@@ -1,3 +1,5 @@
+import { playerLink } from './player-link.js';
+
 function initials(name) {
   return name
     .split(/\s+/)
@@ -81,7 +83,7 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, m
       return (
         `<div class="row">` +
         `<div class="rank" style="color:${color}">${rank}</div>` +
-        `<div class="player"><span class="avatar">${initials(row.name)}</span><span class="pname">${row.name}</span></div>` +
+        `<div class="player"><span class="avatar">${initials(row.name)}</span>${playerLink(row.name, 'pname')}</div>` +
         `<div class="num">${row.events}</div>` +
         `<div class="num strong">${row.points}<button class="why" data-index="${index}" aria-label="Points breakdown for ${row.name}">?</button></div>` +
         `<div class="num">${perEvent(row)}</div>` +
