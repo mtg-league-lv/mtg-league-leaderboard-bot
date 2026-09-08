@@ -18,6 +18,7 @@ const profile = {
   tournaments: 3,
   record: { wins: 6, draws: 1, losses: 2 },
   placements: { first: 2, second: 1, third: 0 },
+  colours: { top: ['W', 'U'], pct: 60 },
   decks: [{ deck: 'Azorius Flash', colours: 'WU', tournaments: 2 }, { deck: 'Mono Red', colours: 'R', tournaments: 1 }],
   rivals: [{ name: 'Bob', losses: 3 }, { name: 'Cara', losses: 1 }],
   friends: [{ name: 'Bob', games: 5 }, { name: 'Dan', games: 2 }],
@@ -30,15 +31,20 @@ test('renders header, placements, decks, rivals and friends', () => {
   assert.match(html, /6.1.2/); // 6-1-2 record
   assert.match(html, /Azorius Flash/);
   assert.match(html, /2 tournaments/);
-  // deck colours render as mana pips after the name (W then U)
-  assert.ok(html.indexOf('icons/mana/W.svg') < html.indexOf('icons/mana/U.svg'));
-  assert.ok(html.indexOf('Azorius Flash') < html.indexOf('icons/mana/W.svg'));
+  // deck colours render as mana pips after the deck name (W then U)
+  const deckPos = html.indexOf('Azorius Flash');
+  const wAfter = html.indexOf('icons/mana/W.svg', deckPos);
+  const uAfter = html.indexOf('icons/mana/U.svg', deckPos);
+  assert.ok(wAfter > deckPos && wAfter < uAfter);
   assert.match(html, /Bob/);
   assert.match(html, /3 losses/);
   assert.match(html, /5 games/);
   // placement counts present
   assert.match(html, />2</);
   assert.match(html, />1</);
+  // most-played colours shown in the placements section with a whole-percent share
+  assert.match(html, /class="placement fav-colours"/);
+  assert.match(html, /60%/);
 });
 
 test('shows empty states for decks and head-to-head', () => {

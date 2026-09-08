@@ -50,6 +50,8 @@ export function playerProfile(tournaments, name) {
   const deckTournaments = new Map(); // deck -> { tournaments, colours }
   const losses = new Map();          // opponent -> match losses
   const games = new Map();           // opponent -> matches played
+  const colourGames = { W: 0, U: 0, B: 0, R: 0, G: 0 }; // games whose deck used each colour
+  let colouredGames = 0;             // games with a known deck colour
   const record = { wins: 0, draws: 0, losses: 0 };
   let attended = 0;
 
@@ -75,6 +77,14 @@ export function playerProfile(tournaments, name) {
 
     for (const round of tournament.rounds) {
       for (const pairing of round.pairings) {
+        // Colour usage counts every game the player fielded a known deck colour.
+        for (const p of [pairing.player1, pairing.player2]) {
+          if (!p || p.name !== name || !p.deck_colours) continue;
+          colouredGames += 1;
+          for (const c of new Set(p.deck_colours.toUpperCase())) {
+            if (c in colourGames) colourGames[c] += 1;
+          }
+        }
         const { player1: p1, player2: p2 } = pairing;
         if (!p1 || !p2) continue; // byes have no opponent
         let me, opp;
@@ -93,10 +103,19 @@ export function playerProfile(tournaments, name) {
     .map(([deck, { tournaments, colours }]) => ({ deck, colours: colours || null, tournaments }))
     .sort((a, b) => b.tournaments - a.tournaments || a.deck.localeCompare(b.deck));
 
+  // Most-played colour(s): the colour(s) appearing in the most games, with the
+  // share of games rounded to a whole percent. Ties list every leading colour.
+  const ORDER = ['W', 'U', 'B', 'R', 'G'];
+  const maxColour = Math.max(0, ...ORDER.map(c => colourGames[c]));
+  const colours = colouredGames > 0 && maxColour > 0
+    ? { top: ORDER.filter(c => colourGames[c] === maxColour), pct: Math.round((maxColour / colouredGames) * 100) }
+    : { top: [], pct: 0 };
+
   return {
     tournaments: attended,
     record,
     placements,
+    colours,
     decks,
     rivals: topThree(losses, 'losses'),
     friends: topThree(games, 'games'),

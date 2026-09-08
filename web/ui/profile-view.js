@@ -20,12 +20,18 @@ export function renderProfile(name, profile) {
     `${profile.tournaments === 1 ? 'tournament' : 'tournaments'} · ${r.wins}-${r.draws}-${r.losses}</div>`;
 
   const p = profile.placements;
+  const colours = profile.colours || { top: [], pct: 0 };
+  const favColours = colours.top.length
+    ? `<div class="placement fav-colours" title="Most played colour${colours.top.length > 1 ? 's' : ''}">` +
+      `${manaIcons(colours.top.join(''))}<span class="pcount">${colours.pct}%</span></div>`
+    : '';
   const placements =
     '<h2 class="profile-section">Placements</h2>' +
     '<div class="placements">' +
     `<div class="placement"><span class="medal">🥇</span><span class="pcount">${p.first}</span></div>` +
     `<div class="placement"><span class="medal">🥈</span><span class="pcount">${p.second}</span></div>` +
     `<div class="placement"><span class="medal">🥉</span><span class="pcount">${p.third}</span></div>` +
+    favColours +
     '</div>';
 
   const decks =

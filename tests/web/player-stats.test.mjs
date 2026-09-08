@@ -65,6 +65,23 @@ test('friends are opponents played the most, top 3', () => {
   assert.ok(p.friends.length <= 3);
 });
 
+test('most-played colours with rounded game share, ties listed', () => {
+  const p = playerProfile([t1, t2], 'Ann');
+  // Ann played 3 games with a known colour: WU (t1 r1), WU (t1 r2), R (t2).
+  // W=2, U=2, R=1 -> top W,U tied; 2/3 -> 67%.
+  assert.deepEqual(p.colours, { top: ['W', 'U'], pct: 67 });
+});
+
+test('no colours when no deck colour is known', () => {
+  const t = { id: 'n', name: 'N', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) },
+        player2: { name: 'Bob', game_wins: 0, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  assert.deepEqual(playerProfile([t], 'Ann').colours, { top: [], pct: 0 });
+});
+
 test('summary: tournaments attended and final record', () => {
   const p = playerProfile([t1, t2], 'Ann');
   assert.equal(p.tournaments, 2);
