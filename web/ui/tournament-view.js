@@ -1,24 +1,12 @@
 import { points, rankPlayers } from '../lib/leaderboard.js';
 import { playerLink } from './player-link.js';
+import { manaIcons } from './mana.js';
 
 function recordChip(record) {
   return `<span class="chip">${record.wins}-${record.draws}-${record.losses}</span>`;
 }
 
 const MARK = '<span class="mark">✓</span>';
-
-const MANA = new Set(['W', 'U', 'B', 'R', 'G']);
-
-function manaIcons(colours) {
-  if (!colours) return '';
-  const icons = [...colours.toUpperCase()]
-    .filter(c => MANA.has(c))
-    .map(c => `<img class="mana" src="icons/mana/${c}.svg" alt="${c}" />`)
-    .join('');
-  // Wrap in one element so the flex gap of .player/.side applies around the
-  // group, not between each icon.
-  return icons ? `<div class="mana-colours">${icons}</div>` : '';
-}
 
 function deckInfo(player) {
   const icons = manaIcons(player.deck_colours);

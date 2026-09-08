@@ -43,8 +43,8 @@ test('groups decks by tournament count', () => {
   const p = playerProfile([t1, t2], 'Ann');
   // Azorius across t1 (one tournament), Mono Red in t2
   assert.deepEqual(p.decks, [
-    { deck: 'Azorius', tournaments: 1 },
-    { deck: 'Mono Red', tournaments: 1 },
+    { deck: 'Azorius', colours: 'WU', tournaments: 1 },
+    { deck: 'Mono Red', colours: 'R', tournaments: 1 },
   ]);
 });
 

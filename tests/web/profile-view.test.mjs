@@ -18,7 +18,7 @@ const profile = {
   tournaments: 3,
   record: { wins: 6, draws: 1, losses: 2 },
   placements: { first: 2, second: 1, third: 0 },
-  decks: [{ deck: 'Azorius Flash', tournaments: 2 }, { deck: 'Mono Red', tournaments: 1 }],
+  decks: [{ deck: 'Azorius Flash', colours: 'WU', tournaments: 2 }, { deck: 'Mono Red', colours: 'R', tournaments: 1 }],
   rivals: [{ name: 'Bob', losses: 3 }, { name: 'Cara', losses: 1 }],
   friends: [{ name: 'Bob', games: 5 }, { name: 'Dan', games: 2 }],
 };
@@ -30,6 +30,9 @@ test('renders header, placements, decks, rivals and friends', () => {
   assert.match(html, /6.1.2/); // 6-1-2 record
   assert.match(html, /Azorius Flash/);
   assert.match(html, /2 tournaments/);
+  // deck colours render as mana pips after the name (W then U)
+  assert.ok(html.indexOf('icons/mana/W.svg') < html.indexOf('icons/mana/U.svg'));
+  assert.ok(html.indexOf('Azorius Flash') < html.indexOf('icons/mana/W.svg'));
   assert.match(html, /Bob/);
   assert.match(html, /3 losses/);
   assert.match(html, /5 games/);

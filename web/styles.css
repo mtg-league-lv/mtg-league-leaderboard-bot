@@ -285,6 +285,7 @@ select {
   font-size: 14px;
 }
 .profile-item:last-child { border-bottom: 0; }
+.profile-item .mana-colours { margin-left: 6px; }
 .profile-num { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .profile-empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
 
