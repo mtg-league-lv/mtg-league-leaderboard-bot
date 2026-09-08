@@ -19,7 +19,8 @@ test('shows an empty state when there are no rows', () => {
 
 test('wraps the player name in a truncatable element', () => {
   const html = renderLeaderboard([{ name: 'Vladislavs L', points: 9, events: 2, breakdown: [] }]);
-  assert.match(html, /class="pname">Vladislavs L<\/span>/);
+  // The name is a profile link that keeps the truncatable `.pname` class.
+  assert.match(html, /class="player-link pname" href="#player\/Vladislavs%20L">Vladislavs L<\/a>/);
 });
 
 test('sortable headers carry a short label for narrow screens', () => {

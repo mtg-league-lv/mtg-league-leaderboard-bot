@@ -1,4 +1,5 @@
 import { points, rankPlayers } from '../lib/leaderboard.js';
+import { playerLink } from './player-link.js';
 
 function recordChip(record) {
   return `<span class="chip">${record.wins}-${record.draws}-${record.losses}</span>`;
@@ -38,7 +39,7 @@ function pairingRow(pairing) {
   if (!pairing.player2) {
     return (
       `<div class="pairing bye">` +
-      `<div class="side win">${MARK}<span class="name">${p1.name}</span>${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
+      `<div class="side win">${MARK}${playerLink(p1.name, "name")}${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
       `<div class="score">Bye</div>` +
       `<div class="side right"></div>` +
       `</div>`
@@ -49,9 +50,9 @@ function pairingRow(pairing) {
   const p2Won = p2.game_wins > p1.game_wins;
   return (
     `<div class="pairing">` +
-    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
+    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}${playerLink(p1.name, "name")}${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
     `<div class="score">${p1.game_wins}-${p2.game_wins}</div>` +
-    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${deckInfo(p2)}${leagueTag(p2)}${p2Won ? MARK : ''}</div>` +
+    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}${playerLink(p2.name, "name")}${deckInfo(p2)}${leagueTag(p2)}${p2Won ? MARK : ''}</div>` +
     `</div>`
   );
 }
@@ -96,7 +97,7 @@ function renderStandingsTable(rows) {
       return (
         `<div class="row">` +
         `<div class="rank">${rank}</div>` +
-        `<div class="player"><span class="pname">${player.name}</span>${deckInfo(player)}${leagueTag(player)}</div>` +
+        `<div class="player">${playerLink(player.name, "pname")}${deckInfo(player)}${leagueTag(player)}</div>` +
         `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
         `<div class="num strong">${points(r)}</div>` +
         `</div>`

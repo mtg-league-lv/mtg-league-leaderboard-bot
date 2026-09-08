@@ -4,6 +4,8 @@ import { renderLeaderboard, renderBreakdown, sortLeaderboard, computeMovements }
 import { renderTournament } from './ui/tournament-view.js';
 import { renderRules } from './ui/rules.js';
 import { renderLeagueRules } from './ui/league-rules.js';
+import { renderProfile } from './ui/profile-view.js';
+import { playerProfile } from './lib/player-stats.js';
 
 const state = { tournaments: [] };
 
@@ -57,15 +59,38 @@ function setupTabs() {
     { btn: 'tab-td', view: 'view-td' },
     { btn: 'tab-rules', view: 'view-rules' },
   ].map(t => ({ btn: document.getElementById(t.btn), view: document.getElementById(t.view) }));
-  function show(active) {
+  const profileView = document.getElementById('view-profile');
+  let active = tabs[0];
+
+  function showActiveTab() {
+    profileView.hidden = true;
     for (const t of tabs) {
       const on = t === active;
       t.view.hidden = !on;
       t.btn.setAttribute('aria-selected', String(on));
     }
   }
-  for (const t of tabs) t.btn.addEventListener('click', () => show(t));
-  show(tabs[0]);
+  function showProfile(name) {
+    for (const t of tabs) t.view.hidden = true;
+    profileView.innerHTML = renderProfile(name, playerProfile(state.tournaments, name));
+    profileView.hidden = false;
+    window.scrollTo(0, 0);
+  }
+  function route() {
+    const match = location.hash.match(/^#player\/(.+)$/);
+    if (match) showProfile(decodeURIComponent(match[1]));
+    else showActiveTab();
+  }
+  for (const t of tabs) {
+    t.btn.addEventListener('click', () => {
+      active = t;
+      // Leaving a profile: clearing the hash re-routes to the active tab.
+      if (location.hash.startsWith('#player/')) location.hash = '';
+      else showActiveTab();
+    });
+  }
+  window.addEventListener('hashchange', route);
+  route();
 }
 
 function setupLeaderboard() {

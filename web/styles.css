@@ -254,6 +254,40 @@ select {
 .bd-subtotal { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 3px; color: var(--muted); }
 .bd-total { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 500; }
 
+/* Player-profile links and page */
+.player-link { color: inherit; text-decoration: none; }
+.player-link:hover { text-decoration: underline; text-decoration-color: var(--muted); }
+.back-link { display: inline-block; margin-bottom: 12px; font-size: 14px; color: var(--accent-text); text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.profile-header { margin-bottom: 4px; }
+.profile-name { font-size: 22px; font-weight: 600; margin: 0; }
+.profile-summary { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.profile-section { font-size: 15px; font-weight: 600; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.placements { display: flex; gap: 10px; }
+.placement {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.placement .medal { font-size: 20px; }
+.placement .pcount { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.profile-list { list-style: none; margin: 0; padding: 0; }
+.profile-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.profile-item:last-child { border-bottom: 0; }
+.profile-num { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.profile-empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+
 /* League rules page (Rules tab) */
 .rules-page { font-size: 14px; line-height: 1.55; }
 .rules-page h1 { font-size: 20px; font-weight: 600; margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
