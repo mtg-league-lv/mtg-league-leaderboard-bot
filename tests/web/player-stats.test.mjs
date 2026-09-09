@@ -65,11 +65,27 @@ test('friends are opponents played the most, top 3', () => {
   assert.ok(p.friends.length <= 3);
 });
 
-test('most-played colours with rounded game share, ties listed', () => {
+test('most-played colours are counted per tournament, ties listed', () => {
   const p = playerProfile([t1, t2], 'Ann');
-  // Ann played 3 games with a known colour: WU (t1 r1), WU (t1 r2), R (t2).
-  // W=2, U=2, R=1 -> top W,U tied; 2/3 -> 67%.
-  assert.deepEqual(p.colours, { top: ['W', 'U'], pct: 67 });
+  // Ann used WU in t1 and R in t2 — one tournament each, so W/U/R each appear in
+  // 1 of 2 tournaments (tied). t1's two rounds do NOT double-count WU.
+  assert.deepEqual(p.colours, { top: ['W', 'U', 'R'], pct: 50 });
+});
+
+test('round-based events do not weigh more than standings-only for colours', () => {
+  // Same deck (WU) played across a 3-round event and a 1-round event, plus a
+  // 1-round mono-R event. Per game this would inflate WU; per tournament it is even.
+  const threeRound = { id: 'a', name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [{ pairing: 1, player1: { name: 'Zoe', game_wins: 2, record: rec(1, 0, 0), deck: 'Azorius', deck_colours: 'WU' }, player2: { name: 'X', game_wins: 0, record: rec(0, 0, 1) } }] },
+    { round: 2, pairings: [{ pairing: 1, player1: { name: 'Zoe', game_wins: 2, record: rec(2, 0, 0), deck: 'Azorius', deck_colours: 'WU' }, player2: { name: 'X', game_wins: 0, record: rec(0, 0, 2) } }] },
+    { round: 3, pairings: [{ pairing: 1, player1: { name: 'Zoe', game_wins: 2, record: rec(3, 0, 0), deck: 'Azorius', deck_colours: 'WU' }, player2: { name: 'X', game_wins: 0, record: rec(0, 0, 3) } }] },
+  ] };
+  const oneRoundR = { id: 'b', name: 'B', date: '2026-08-01', rounds: [
+    { round: 1, pairings: [{ pairing: 1, player1: { name: 'Zoe', game_wins: 0, record: rec(0, 0, 1), deck: 'Burn', deck_colours: 'R' }, player2: { name: 'X', game_wins: 2, record: rec(1, 0, 0) } }] },
+  ] };
+  const p = playerProfile([threeRound, oneRoundR], 'Zoe');
+  // 2 tournaments: WU (1) and R (1). W/U/R each 1 -> tied at 50%. Not WU 75%.
+  assert.deepEqual(p.colours, { top: ['W', 'U', 'R'], pct: 50 });
 });
 
 test('no colours when no deck colour is known', () => {

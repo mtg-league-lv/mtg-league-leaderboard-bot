@@ -50,8 +50,8 @@ export function playerProfile(tournaments, name) {
   const deckTournaments = new Map(); // deck -> { tournaments, colours }
   const losses = new Map();          // opponent -> match losses
   const games = new Map();           // opponent -> matches played
-  const colourGames = { W: 0, U: 0, B: 0, R: 0, G: 0 }; // games whose deck used each colour
-  let colouredGames = 0;             // games with a known deck colour
+  const colourEvents = { W: 0, U: 0, B: 0, R: 0, G: 0 }; // tournaments whose deck used each colour
+  let colouredEvents = 0;            // tournaments with a known deck colour
   const record = { wins: 0, draws: 0, losses: 0 };
   let attended = 0;
 
@@ -68,6 +68,14 @@ export function playerProfile(tournaments, name) {
       if (!entry.colours && here.deck_colours) entry.colours = here.deck_colours;
       deckTournaments.set(here.deck, entry);
     }
+    // Colour usage counts each tournament once (independent of how many rounds are
+    // stored), so round-based and standings-only events weigh the same.
+    if (here.deck_colours) {
+      colouredEvents += 1;
+      for (const c of new Set(here.deck_colours.toUpperCase())) {
+        if (c in colourEvents) colourEvents[c] += 1;
+      }
+    }
 
     const order = tournamentOrder(tournament);
     const idx = order.findIndex(p => p.name === name);
@@ -77,14 +85,6 @@ export function playerProfile(tournaments, name) {
 
     for (const round of tournament.rounds) {
       for (const pairing of round.pairings) {
-        // Colour usage counts every game the player fielded a known deck colour.
-        for (const p of [pairing.player1, pairing.player2]) {
-          if (!p || p.name !== name || !p.deck_colours) continue;
-          colouredGames += 1;
-          for (const c of new Set(p.deck_colours.toUpperCase())) {
-            if (c in colourGames) colourGames[c] += 1;
-          }
-        }
         const { player1: p1, player2: p2 } = pairing;
         if (!p1 || !p2) continue; // byes have no opponent
         let me, opp;
@@ -103,12 +103,12 @@ export function playerProfile(tournaments, name) {
     .map(([deck, { tournaments, colours }]) => ({ deck, colours: colours || null, tournaments }))
     .sort((a, b) => b.tournaments - a.tournaments || a.deck.localeCompare(b.deck));
 
-  // Most-played colour(s): the colour(s) appearing in the most games, with the
-  // share of games rounded to a whole percent. Ties list every leading colour.
+  // Most-played colour(s): the colour(s) used in the most tournaments, with the
+  // share of tournaments rounded to a whole percent. Ties list every leading colour.
   const ORDER = ['W', 'U', 'B', 'R', 'G'];
-  const maxColour = Math.max(0, ...ORDER.map(c => colourGames[c]));
-  const colours = colouredGames > 0 && maxColour > 0
-    ? { top: ORDER.filter(c => colourGames[c] === maxColour), pct: Math.round((maxColour / colouredGames) * 100) }
+  const maxColour = Math.max(0, ...ORDER.map(c => colourEvents[c]));
+  const colours = colouredEvents > 0 && maxColour > 0
+    ? { top: ORDER.filter(c => colourEvents[c] === maxColour), pct: Math.round((maxColour / colouredEvents) * 100) }
     : { top: [], pct: 0 };
 
   return {
