@@ -47,6 +47,19 @@ test('renders header, placements, decks, rivals and friends', () => {
   assert.match(html, /60%/);
 });
 
+test('renders a season picker with Overall plus the player seasons', () => {
+  const seasons = [{ key: '2026-2', label: 'Summer 2026' }, { key: '2026-1', label: 'Spring 2026' }];
+  const html = renderProfile('Ann', profile, seasons, '2026-2');
+  assert.match(html, /id="profile-season"/);
+  assert.match(html, /<option value="all">Overall<\/option>/);
+  assert.match(html, /<option value="2026-2" selected>Summer 2026<\/option>/);
+  assert.match(html, /Spring 2026/);
+});
+
+test('no season picker when the player has no seasons', () => {
+  assert.ok(!renderProfile('Ann', profile).includes('profile-season'));
+});
+
 test('shows empty states for decks and head-to-head', () => {
   const html = renderProfile('New', {
     tournaments: 1, record: { wins: 0, draws: 0, losses: 3 },

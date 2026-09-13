@@ -6,12 +6,22 @@ function statList(items, render, emptyText) {
   return `<ul class="profile-list">${items.map(render).join('')}</ul>`;
 }
 
-export function renderProfile(name, profile) {
+function seasonPicker(seasons = [], selected = 'all') {
+  if (seasons.length === 0) return '';
+  const options = [{ key: 'all', label: 'Overall' }, ...seasons]
+    .map(s => `<option value="${s.key}"${s.key === selected ? ' selected' : ''}>${s.label}</option>`)
+    .join('');
+  return `<select id="profile-season" class="profile-season" aria-label="Season">${options}</select>`;
+}
+
+export function renderProfile(name, profile, seasons = [], selectedSeason = 'all') {
   const back = '<a class="back-link" href="#">← Back</a>';
-  const header = `<div class="profile-header"><h1 class="profile-name">${name}</h1></div>`;
+  const header =
+    `<div class="profile-header"><h1 class="profile-name">${name}</h1>` +
+    `${seasonPicker(seasons, selectedSeason)}</div>`;
 
   if (profile.tournaments === 0) {
-    return `${back}${header}<div class="profile-empty">No data for this player yet.</div>`;
+    return `${back}${header}<div class="profile-empty">No data for this player in this season.</div>`;
   }
 
   const r = profile.record;

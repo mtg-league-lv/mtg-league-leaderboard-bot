@@ -259,8 +259,9 @@ select {
 .player-link:hover { text-decoration: underline; text-decoration-color: var(--muted); }
 .back-link { display: inline-block; margin-bottom: 12px; font-size: 14px; color: var(--accent-text); text-decoration: none; }
 .back-link:hover { text-decoration: underline; }
-.profile-header { margin-bottom: 4px; }
+.profile-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
 .profile-name { font-size: 22px; font-weight: 600; margin: 0; }
+.profile-season { font-size: 14px; }
 .profile-summary { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .profile-section { font-size: 15px; font-weight: 600; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
 .placements { display: flex; gap: 10px; }
