@@ -38,6 +38,11 @@ function playerInTournament(tournament, name) {
   return found;
 }
 
+// Dates of the tournaments the player appeared in (for building a season filter).
+export function attendedDates(tournaments, name) {
+  return tournaments.filter(t => playerInTournament(t, name)).map(t => t.date);
+}
+
 function topThree(counts, valueKey) {
   return [...counts.entries()]
     .map(([name, value]) => ({ name, [valueKey]: value }))

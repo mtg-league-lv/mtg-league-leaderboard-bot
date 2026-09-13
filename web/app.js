@@ -5,7 +5,7 @@ import { renderTournament } from './ui/tournament-view.js';
 import { renderRules } from './ui/rules.js';
 import { renderLeagueRules } from './ui/league-rules.js';
 import { renderProfile } from './ui/profile-view.js';
-import { playerProfile } from './lib/player-stats.js';
+import { playerProfile, attendedDates } from './lib/player-stats.js';
 
 const state = { tournaments: [] };
 
@@ -61,6 +61,7 @@ function setupTabs() {
   ].map(t => ({ btn: document.getElementById(t.btn), view: document.getElementById(t.view) }));
   const profileView = document.getElementById('view-profile');
   let active = tabs[0];
+  let profileName = null;
 
   function showActiveTab() {
     profileView.hidden = true;
@@ -70,12 +71,33 @@ function setupTabs() {
       t.btn.setAttribute('aria-selected', String(on));
     }
   }
+  function seasonsForPlayer(name) {
+    const byKey = new Map();
+    for (const date of attendedDates(state.tournaments, name)) byKey.set(seasonKey(date), seasonLabel(date));
+    return [...byKey.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, label]) => ({ key, label }));
+  }
+  function renderProfileFor(name, season) {
+    const tournaments = season === 'all'
+      ? state.tournaments
+      : state.tournaments.filter(t => seasonKey(t.date) === season);
+    profileView.innerHTML = renderProfile(
+      name, playerProfile(tournaments, name), seasonsForPlayer(name), season,
+    );
+  }
   function showProfile(name) {
+    profileName = name;
     for (const t of tabs) t.view.hidden = true;
-    profileView.innerHTML = renderProfile(name, playerProfile(state.tournaments, name));
+    renderProfileFor(name, 'all');
     profileView.hidden = false;
     window.scrollTo(0, 0);
   }
+  profileView.addEventListener('change', event => {
+    if (event.target.id === 'profile-season' && profileName) {
+      renderProfileFor(profileName, event.target.value);
+    }
+  });
   function route() {
     const match = location.hash.match(/^#player\/(.+)$/);
     if (match) showProfile(decodeURIComponent(match[1]));

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { playerProfile } from '../../web/lib/player-stats.js';
+import { playerProfile, attendedDates } from '../../web/lib/player-stats.js';
 
 const rec = (w, d, l) => ({ wins: w, draws: d, losses: l });
 
@@ -116,6 +116,12 @@ test('empty head-to-head when only standings-only events', () => {
   assert.equal(p.placements.first, 1);       // pairing-as-rank: Elliot 1st
   assert.deepEqual(p.rivals, []);
   assert.deepEqual(p.friends, []);
+});
+
+test('attendedDates lists the dates a player appeared in', () => {
+  assert.deepEqual(attendedDates([t1, t2], 'Ann'), ['2026-07-06', '2026-08-01']);
+  assert.deepEqual(attendedDates([t1, t2], 'Cara'), ['2026-07-06']);
+  assert.deepEqual(attendedDates([t1, t2], 'Nobody'), []);
 });
 
 test('unknown player returns zeroed profile', () => {
