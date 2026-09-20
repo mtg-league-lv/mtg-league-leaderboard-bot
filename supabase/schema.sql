@@ -65,3 +65,17 @@ create policy "public read round_results" on round_results
   for select to anon, authenticated using (true);
 create policy "public read players"       on players
   for select to anon, authenticated using (true);
+
+-- Links a signed-in auth user to a league player. The admin sets player_key
+-- manually in the Supabase dashboard (service_role bypasses RLS). Users may read
+-- ONLY their own row; there are no user write policies.
+create table if not exists profiles (
+  id         uuid primary key references auth.users(id) on delete cascade,
+  player_key text references players(player_key),
+  created_at timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+drop policy if exists "own profile read" on profiles;
+create policy "own profile read" on profiles
+  for select to authenticated using (auth.uid() = id);
