@@ -46,3 +46,22 @@ alter table round_results add column if not exists opponent_deck_colours   text;
 -- Official final standing (1 = winner) from an authoritative standings source;
 -- null when placement should be computed from records.
 alter table round_results add column if not exists final_rank             smallint;
+
+-- Public read access for the browser (anon key). RLS is the security boundary;
+-- these SELECT policies expose exactly the data already published in the static
+-- site. The Discord bot/export uses service_role, which bypasses RLS. Writes
+-- remain closed (no INSERT/UPDATE/DELETE policies) — added in a later phase.
+alter table tournaments   enable row level security;
+alter table round_results enable row level security;
+alter table players       enable row level security;
+
+drop policy if exists "public read tournaments"   on tournaments;
+drop policy if exists "public read round_results"  on round_results;
+drop policy if exists "public read players"        on players;
+
+create policy "public read tournaments"  on tournaments
+  for select to anon, authenticated using (true);
+create policy "public read round_results" on round_results
+  for select to anon, authenticated using (true);
+create policy "public read players"       on players
+  for select to anon, authenticated using (true);
