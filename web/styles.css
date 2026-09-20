@@ -337,3 +337,31 @@ select {
   .side.right .deck-info { justify-content: flex-end; }
   .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* The signed-in, admin-linked viewer's own leaderboard row. */
+.row.me { background: var(--accent-bg); }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.auth-control { display: flex; align-items: center; }
+.auth-signin {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+.auth-signin:hover { border-color: var(--muted); }
+.auth-avatar { display: inline-flex; border-radius: 50%; }
+.auth-avatar-img {
+  width: 32px; height: 32px; border-radius: 50%;
+  object-fit: cover; display: block;
+}
+
+.account { padding: 12px 0; display: flex; flex-direction: column; gap: 14px; }
+.account-head { display: flex; align-items: center; gap: 14px; }
+.account-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+.account-email { color: var(--muted); font-size: 14px; }
+.account-linked { font-size: 15px; }
+.account .auth-signin { align-self: flex-start; }

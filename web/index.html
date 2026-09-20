@@ -10,11 +10,14 @@
   <body>
     <header class="topbar">
       <div class="brand">MTG Latvia — Standard League</div>
-      <nav class="tabs">
-        <button id="tab-lb" class="tab" aria-selected="true">Leaderboard</button>
-        <button id="tab-td" class="tab" aria-selected="false">Tournament</button>
-        <button id="tab-rules" class="tab" aria-selected="false">Rules</button>
-      </nav>
+      <div class="topbar-right">
+        <nav class="tabs">
+          <button id="tab-lb" class="tab" aria-selected="true">Leaderboard</button>
+          <button id="tab-td" class="tab" aria-selected="false">Tournament</button>
+          <button id="tab-rules" class="tab" aria-selected="false">Rules</button>
+        </nav>
+        <div id="auth-control" class="auth-control"></div>
+      </div>
     </header>
     <main>
       <section id="view-lb">
@@ -41,6 +44,7 @@
         <div id="rules-view"></div>
       </section>
       <section id="view-profile" hidden></section>
+      <section id="view-account" hidden></section>
     </main>
     <div id="breakdown-popover" class="breakdown-popover" hidden></div>
     <div id="rules-modal" class="modal" hidden>

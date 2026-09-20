@@ -64,7 +64,7 @@ function sortHead(col, label, short, sort) {
   );
 }
 
-export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, moves = new Map()) {
+export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, moves = new Map(), highlightName = null) {
   if (rows.length === 0) {
     return '<div class="empty">No results for this season.</div>';
   }
@@ -80,8 +80,9 @@ export function renderLeaderboard(rows, sort = { col: 'points', dir: 'desc' }, m
     .map((row, index) => {
       const rank = index + 1;
       const color = medal[index] || 'var(--muted)';
+      const rowClass = row.name === highlightName ? 'row me' : 'row';
       return (
-        `<div class="row">` +
+        `<div class="${rowClass}">` +
         `<div class="rank" style="color:${color}">${rank}</div>` +
         `<div class="player"><span class="avatar">${initials(row.name)}</span>${playerLink(row.name, 'pname')}</div>` +
         `<div class="num">${row.events}</div>` +

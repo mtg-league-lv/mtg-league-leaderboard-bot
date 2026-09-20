@@ -53,3 +53,14 @@ test('loadSiteData composes tables into the site shape with league flags', async
   assert.equal(byName.Ann.is_league, true);
   assert.equal(byName.Guest.is_league, false);
 });
+
+test('loadSiteData returns raw players including display_name', async () => {
+  const client = new FakeClient({
+    tournaments: [{ id: 1, name: 'A', event_date: '2026-07-06' }],
+    round_results: [res(1, 1, 1, 'Ann', 'ann', 2, 1, 0, 0)],
+    players: [{ player_key: 'ann', display_name: 'Ann', is_league: true }],
+  });
+  const data = await loadSiteData(client);
+  assert.deepEqual(data.players, [{ player_key: 'ann', display_name: 'Ann', is_league: true }]);
+  assert.equal(data.tournaments[0].rounds[0].pairings[0].player1.name, 'Ann');
+});
