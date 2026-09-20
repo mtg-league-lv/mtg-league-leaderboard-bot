@@ -252,3 +252,52 @@ test('a round-based event shows final standings on top, then the rounds', () => 
   // Final record used in the standings (Sergey 2-0-0 after round 2).
   assert.match(seg, /2-0-0/);
 });
+
+import { renderYouvePlayed } from '../../web/ui/tournament-view.js';
+
+test('renderYouvePlayed shows an editable form with colours pre-selected', () => {
+  const html = renderYouvePlayed({ name: 'Ann', deck: 'Izzet', deck_colours: 'UR' }, true);
+  assert.ok(html.includes("You've played"));
+  assert.ok(html.includes('data-pip="U"'));
+  assert.ok(html.includes('data-pip="R"'));
+  assert.ok(html.includes('pip-toggle selected" data-pip="U"'));
+  assert.ok(html.includes('pip-toggle" data-pip="G"')); // unselected has no 'selected' class
+  assert.ok(html.includes('value="Izzet"'));
+  assert.ok(html.includes('id="deck-save"'));
+});
+
+test('renderYouvePlayed is read-only when not editable', () => {
+  const html = renderYouvePlayed({ name: 'Ann', deck: 'Izzet', deck_colours: 'UR' }, false);
+  assert.ok(html.includes("You've played"));
+  assert.ok(!html.includes('id="deck-save"'));
+  assert.ok(html.includes('Izzet'));
+});
+
+test('renderYouvePlayed read-only with no deck shows a placeholder', () => {
+  const html = renderYouvePlayed({ name: 'Ann', deck: null, deck_colours: null }, false);
+  assert.ok(html.includes('No deck recorded yet'));
+});
+
+test('renderTournament prepends the section for a participating viewer', () => {
+  const t = {
+    id: '1', name: 'A', date: '2026-07-06',
+    rounds: [{ round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: { wins: 1, draws: 0, losses: 0 } },
+        player2: { name: 'Bob', game_wins: 1, record: { wins: 0, draws: 0, losses: 1 } } },
+    ] }],
+  };
+  const html = renderTournament(t, { name: 'Ann', editable: true });
+  assert.ok(html.indexOf("You've played") < html.indexOf('Final standings'));
+});
+
+test('renderTournament shows no section when the viewer did not play', () => {
+  const t = {
+    id: '1', name: 'A', date: '2026-07-06',
+    rounds: [{ round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: { wins: 1, draws: 0, losses: 0 } },
+        player2: { name: 'Bob', game_wins: 1, record: { wins: 0, draws: 0, losses: 1 } } },
+    ] }],
+  };
+  assert.ok(!renderTournament(t, { name: 'Zoe', editable: true }).includes("You've played"));
+  assert.ok(!renderTournament(t, null).includes("You've played"));
+});
