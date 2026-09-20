@@ -10,7 +10,7 @@ const RESULT_COLS =
   'tournament_id, round, pairing, final_rank, player_name, player_key, ' +
   'game_wins, record_wins, record_draws, record_losses, ' +
   'player_deck, player_deck_colours';
-const PLAYER_COLS = 'player_key, is_league';
+const PLAYER_COLS = 'player_key, display_name, is_league';
 
 export async function fetchAll(client, table, cols) {
   // PostgREST caps a single response (~1000 rows); page explicitly so a dropped
@@ -39,5 +39,5 @@ export async function loadSiteData(client) {
   const leagueKeys = new Set(
     players.filter(p => p.is_league).map(p => p.player_key),
   );
-  return buildSiteData(tournaments, results, leagueKeys);
+  return { ...buildSiteData(tournaments, results, leagueKeys), players };
 }
