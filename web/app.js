@@ -127,14 +127,31 @@ function setupTabs() {
     profileView.hidden = false;
     window.scrollTo(0, 0);
   }
+  // The linked player's profile for the embedded Account view (season filtered).
+  function linkedFor(season) {
+    const name = state.associatedName;
+    if (!name) return null;
+    const tournaments = season === 'all'
+      ? state.tournaments
+      : state.tournaments.filter(t => seasonKey(t.date) === season);
+    return {
+      name, profile: playerProfile(tournaments, name),
+      seasons: seasonsForPlayer(name), selectedSeason: season,
+    };
+  }
   function showAccount() {
     for (const t of tabs) t.view.hidden = true;
     profileView.hidden = true;
-    accountView.innerHTML = renderAccount(state.user, state.associatedName);
+    accountView.innerHTML = renderAccount(state.user, linkedFor('all'));
     accountView.hidden = false;
     window.scrollTo(0, 0);
   }
   state.showAccount = showAccount;
+  accountView.addEventListener('change', event => {
+    if (event.target.id === 'profile-season' && state.associatedName) {
+      accountView.innerHTML = renderAccount(state.user, linkedFor(event.target.value));
+    }
+  });
   accountView.addEventListener('click', event => {
     const provider = event.target.closest('[data-provider]');
     if (provider) signInWithProvider(client, provider.dataset.provider, redirectTo());

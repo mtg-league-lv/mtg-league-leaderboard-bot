@@ -76,3 +76,16 @@ test('unknown player (no tournaments) shows a friendly message', () => {
   });
   assert.match(html, /No data for this player/);
 });
+
+test('renderProfile omits the back link when showBack is false (embedded)', () => {
+  const profile = {
+    tournaments: 2, record: { wins: 3, draws: 0, losses: 1 },
+    placements: { first: 1, second: 0, third: 0 }, colours: { top: [], pct: 0 },
+    decks: [], rivals: [], friends: [],
+  };
+  const withBack = renderProfile('Ann', profile, [], 'all');
+  const embedded = renderProfile('Ann', profile, [], 'all', { showBack: false });
+  assert.ok(withBack.includes('class="back-link"'));
+  assert.ok(!embedded.includes('class="back-link"'));
+  assert.ok(embedded.includes('Placements')); // body still rendered
+});
