@@ -6,14 +6,16 @@ import { renderRules } from './ui/rules.js';
 import { renderLeagueRules } from './ui/league-rules.js';
 import { renderProfile } from './ui/profile-view.js';
 import { playerProfile, attendedDates } from './lib/player-stats.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { loadSiteData } from './lib/supabase-data.js';
 
 const state = { tournaments: [] };
 
 async function boot() {
   try {
-    const response = await fetch('data/tournaments.json');
-    if (!response.ok) throw new Error('bad status');
-    state.tournaments = (await response.json()).tournaments;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    state.tournaments = (await loadSiteData(client)).tournaments;
   } catch {
     const message = '<div class="empty">Couldn\'t load data.</div>';
     document.getElementById('lb-body').innerHTML = message;
