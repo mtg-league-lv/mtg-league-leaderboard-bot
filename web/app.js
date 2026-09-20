@@ -13,10 +13,12 @@ import { associatedName } from './lib/association.js';
 import { renderAuthControl } from './ui/auth-control.js';
 import { renderAccount } from './ui/account-view.js';
 import { currentUser, onUserChange, signInWithProvider, signOut, associatedPlayerKey } from './lib/auth.js';
+import { isWithinDays, normalizeColours } from './lib/deck.js';
+import { saveDeck } from './lib/deck-edit.js';
 
 const state = {
   tournaments: [], players: [], user: null, associatedName: null,
-  renderLeaderboard: null, showAccount: null,
+  renderLeaderboard: null, showAccount: null, renderTournamentView: null,
 };
 
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -51,6 +53,7 @@ async function boot() {
   onUserChange(client, async () => {
     await refreshViewer();
     if (state.renderLeaderboard) state.renderLeaderboard();
+    if (state.renderTournamentView) state.renderTournamentView();
     if (location.hash === '#account' && state.showAccount) state.showAccount();
   });
 }
@@ -250,15 +253,57 @@ function setupTournaments() {
       .map(t => `<option value="${t.id}">${t.date} — ${t.name}</option>`)
       .join('');
   }
+  const body = document.getElementById('td-body');
+
+  function viewerFor(tournament) {
+    if (!state.user || !state.associatedName) return null;
+    return {
+      name: state.associatedName,
+      editable: isWithinDays(tournament.date, new Date(), 7),
+    };
+  }
   function render() {
     const tournament = state.tournaments.find(t => t.id === select.value);
-    document.getElementById('td-body').innerHTML = tournament
-      ? renderTournament(tournament)
+    body.innerHTML = tournament
+      ? renderTournament(tournament, viewerFor(tournament))
       : '<div class="empty">No tournaments this season.</div>';
   }
+
+  body.addEventListener('click', async event => {
+    const pip = event.target.closest('.pip-toggle');
+    if (pip) {
+      const on = pip.classList.toggle('selected');
+      pip.setAttribute('aria-pressed', String(on));
+      return;
+    }
+    if (!event.target.closest('#deck-save')) return;
+    const tournament = state.tournaments.find(t => t.id === select.value);
+    if (!tournament) return;
+    const colours = normalizeColours(
+      [...body.querySelectorAll('.pip-toggle.selected')].map(p => p.dataset.pip),
+    );
+    const deckName = body.querySelector('#deck-name').value;
+    const status = body.querySelector('#deck-status');
+    const saveBtn = body.querySelector('#deck-save');
+    status.textContent = 'Saving…';
+    saveBtn.disabled = true;
+    try {
+      await saveDeck(client, { tournamentId: tournament.id, deckName, deckColours: colours });
+      const data = await loadSiteData(client);
+      state.tournaments = data.tournaments;
+      state.players = data.players;
+      render();
+      if (state.renderLeaderboard) state.renderLeaderboard();
+    } catch {
+      status.textContent = "Couldn't save. Try again.";
+      saveBtn.disabled = false;
+    }
+  });
+
   seasonSelect.addEventListener('change', () => { populateTournaments(); render(); });
   select.addEventListener('change', render);
   populateTournaments();
+  state.renderTournamentView = render;
   render();
 }
 
