@@ -365,3 +365,4 @@ select {
 .account-email { color: var(--muted); font-size: 14px; }
 .account-linked { font-size: 15px; }
 .account .auth-signin { align-self: flex-start; }
+.signin-options { display: flex; gap: 10px; flex-wrap: wrap; }

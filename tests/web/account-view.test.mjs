@@ -2,10 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderAccount } from '../../web/ui/account-view.js';
 
-test('signed out prompts to sign in', () => {
+test('signed out prompts to sign in with both providers', () => {
   const html = renderAccount(null, null);
   assert.ok(html.includes('Sign in to view your account'));
-  assert.ok(html.includes('id="signin-btn"'));
+  assert.ok(html.includes('data-provider="discord"'));
+  assert.ok(html.includes('data-provider="google"'));
+  assert.ok(html.includes('Sign in with Discord'));
 });
 
 test('linked account shows name, email, player link and sign out', () => {
