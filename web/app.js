@@ -9,24 +9,55 @@ import { playerProfile, attendedDates } from './lib/player-stats.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { loadSiteData } from './lib/supabase-data.js';
+import { associatedName } from './lib/association.js';
+import { renderAuthControl } from './ui/auth-control.js';
+import { renderAccount } from './ui/account-view.js';
+import { currentUser, onUserChange, signInWithGoogle, signOut, associatedPlayerKey } from './lib/auth.js';
 
-const state = { tournaments: [] };
+const state = {
+  tournaments: [], players: [], user: null, associatedName: null,
+  renderLeaderboard: null, showAccount: null,
+};
+
+const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const redirectTo = () => location.origin + location.pathname;
+
+async function refreshViewer() {
+  state.user = await currentUser(client);
+  const key = state.user ? await associatedPlayerKey(client) : null;
+  state.associatedName = associatedName(key ? { player_key: key } : null, state.players);
+  document.getElementById('auth-control').innerHTML = renderAuthControl(state.user);
+}
 
 async function boot() {
   try {
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    state.tournaments = (await loadSiteData(client)).tournaments;
+    const data = await loadSiteData(client);
+    state.tournaments = data.tournaments;
+    state.players = data.players;
   } catch {
     const message = '<div class="empty">Couldn\'t load data.</div>';
     document.getElementById('lb-body').innerHTML = message;
     document.getElementById('td-body').innerHTML = message;
     return;
   }
+
+  // Sign-in click (the control is re-rendered, so delegate from the container).
+  document.getElementById('auth-control').addEventListener('click', event => {
+    if (event.target.closest('#signin-btn')) signInWithGoogle(client, redirectTo());
+  });
+
+  await refreshViewer();
   setupTabs();
   setupLeaderboard();
   setupTournaments();
   setupRules();
   document.getElementById('rules-view').innerHTML = renderLeagueRules();
+
+  onUserChange(client, async () => {
+    await refreshViewer();
+    if (state.renderLeaderboard) state.renderLeaderboard();
+    if (location.hash === '#account' && state.showAccount) state.showAccount();
+  });
 }
 
 const SUMMER_2026 = '2026-2';
@@ -62,11 +93,13 @@ function setupTabs() {
     { btn: 'tab-rules', view: 'view-rules' },
   ].map(t => ({ btn: document.getElementById(t.btn), view: document.getElementById(t.view) }));
   const profileView = document.getElementById('view-profile');
+  const accountView = document.getElementById('view-account');
   let active = tabs[0];
   let profileName = null;
 
   function showActiveTab() {
     profileView.hidden = true;
+    accountView.hidden = true;
     for (const t of tabs) {
       const on = t === active;
       t.view.hidden = !on;
@@ -91,10 +124,23 @@ function setupTabs() {
   function showProfile(name) {
     profileName = name;
     for (const t of tabs) t.view.hidden = true;
+    accountView.hidden = true;
     renderProfileFor(name, 'all');
     profileView.hidden = false;
     window.scrollTo(0, 0);
   }
+  function showAccount() {
+    for (const t of tabs) t.view.hidden = true;
+    profileView.hidden = true;
+    accountView.innerHTML = renderAccount(state.user, state.associatedName);
+    accountView.hidden = false;
+    window.scrollTo(0, 0);
+  }
+  state.showAccount = showAccount;
+  accountView.addEventListener('click', event => {
+    if (event.target.closest('#signin-btn')) signInWithGoogle(client, redirectTo());
+    if (event.target.closest('#signout-btn')) signOut(client);
+  });
   profileView.addEventListener('change', event => {
     if (event.target.id === 'profile-season' && profileName) {
       renderProfileFor(profileName, event.target.value);
@@ -103,13 +149,14 @@ function setupTabs() {
   function route() {
     const match = location.hash.match(/^#player\/(.+)$/);
     if (match) showProfile(decodeURIComponent(match[1]));
+    else if (location.hash === '#account') showAccount();
     else showActiveTab();
   }
   for (const t of tabs) {
     t.btn.addEventListener('click', () => {
       active = t;
-      // Leaving a profile: clearing the hash re-routes to the active tab.
-      if (location.hash.startsWith('#player/')) location.hash = '';
+      // Leaving a profile/account: clearing the hash re-routes to the active tab.
+      if (location.hash.startsWith('#player/') || location.hash === '#account') location.hash = '';
       else showActiveTab();
     });
   }
@@ -145,7 +192,7 @@ function setupLeaderboard() {
     const count = state.tournaments.filter(t => seasonKey(t.date) === key).length;
     document.getElementById('q-meta').textContent =
       `${count} tournaments · ${currentRows.length} players`;
-    body.innerHTML = renderLeaderboard(currentRows, sort, moves);
+    body.innerHTML = renderLeaderboard(currentRows, sort, moves, state.associatedName);
     hidePopover();
   }
 
@@ -186,6 +233,7 @@ function setupLeaderboard() {
   });
 
   select.addEventListener('change', render);
+  state.renderLeaderboard = render;
   render();
 }
 
