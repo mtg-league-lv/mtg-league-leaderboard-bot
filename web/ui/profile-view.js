@@ -14,8 +14,9 @@ function seasonPicker(seasons = [], selected = 'all') {
   return `<select id="profile-season" class="profile-season" aria-label="Season">${options}</select>`;
 }
 
-export function renderProfile(name, profile, seasons = [], selectedSeason = 'all') {
-  const back = '<a class="back-link" href="#">← Back</a>';
+export function renderProfile(name, profile, seasons = [], selectedSeason = 'all', options = {}) {
+  const { showBack = true } = options;
+  const back = showBack ? '<a class="back-link" href="#">← Back</a>' : '';
   const header =
     `<div class="profile-header"><h1 class="profile-name">${name}</h1>` +
     `${seasonPicker(seasons, selectedSeason)}</div>`;

@@ -382,3 +382,4 @@ select {
   background: var(--bg); color: var(--text); font-size: 14px; min-width: 160px;
 }
 .deck-status { font-size: 13px; color: var(--muted); }
+.account-profile { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 4px; }
