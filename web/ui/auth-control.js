@@ -7,7 +7,8 @@ function initials(name) {
 
 export function renderAuthControl(user) {
   if (!user) {
-    return '<button id="signin-btn" class="auth-signin" type="button">Sign in</button>';
+    // Provider choice lives on the Account page; the topbar just routes there.
+    return '<a class="auth-signin" href="#account">Sign in</a>';
   }
   const inner = user.avatarUrl
     ? `<img class="auth-avatar-img" src="${user.avatarUrl}" alt="" referrerpolicy="no-referrer" />`

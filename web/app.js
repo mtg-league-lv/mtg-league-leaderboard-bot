@@ -12,7 +12,7 @@ import { loadSiteData } from './lib/supabase-data.js';
 import { associatedName } from './lib/association.js';
 import { renderAuthControl } from './ui/auth-control.js';
 import { renderAccount } from './ui/account-view.js';
-import { currentUser, onUserChange, signInWithGoogle, signOut, associatedPlayerKey } from './lib/auth.js';
+import { currentUser, onUserChange, signInWithProvider, signOut, associatedPlayerKey } from './lib/auth.js';
 
 const state = {
   tournaments: [], players: [], user: null, associatedName: null,
@@ -40,11 +40,6 @@ async function boot() {
     document.getElementById('td-body').innerHTML = message;
     return;
   }
-
-  // Sign-in click (the control is re-rendered, so delegate from the container).
-  document.getElementById('auth-control').addEventListener('click', event => {
-    if (event.target.closest('#signin-btn')) signInWithGoogle(client, redirectTo());
-  });
 
   await refreshViewer();
   setupTabs();
@@ -138,7 +133,8 @@ function setupTabs() {
   }
   state.showAccount = showAccount;
   accountView.addEventListener('click', event => {
-    if (event.target.closest('#signin-btn')) signInWithGoogle(client, redirectTo());
+    const provider = event.target.closest('[data-provider]');
+    if (provider) signInWithProvider(client, provider.dataset.provider, redirectTo());
     if (event.target.closest('#signout-btn')) signOut(client);
   });
   profileView.addEventListener('change', event => {

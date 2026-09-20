@@ -14,8 +14,10 @@ export function renderAccount(user, playerName) {
       '<div class="account">' +
       '<h1 class="profile-name">Your account</h1>' +
       '<p class="profile-empty">Sign in to view your account.</p>' +
-      '<button id="signin-btn" class="auth-signin" type="button">Sign in with Google</button>' +
-      '</div>';
+      '<div class="signin-options">' +
+      '<button class="auth-signin" type="button" data-provider="discord">Sign in with Discord</button>' +
+      '<button class="auth-signin" type="button" data-provider="google">Sign in with Google</button>' +
+      '</div></div>';
   }
   const avatar = user.avatarUrl
     ? `<img class="account-avatar" src="${user.avatarUrl}" alt="" referrerpolicy="no-referrer" />`
