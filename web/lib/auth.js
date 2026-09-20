@@ -22,8 +22,8 @@ export function onUserChange(client, cb) {
   });
 }
 
-export function signInWithGoogle(client, redirectTo) {
-  return client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+export function signInWithProvider(client, provider, redirectTo) {
+  return client.auth.signInWithOAuth({ provider, options: { redirectTo } });
 }
 
 export function signOut(client) {

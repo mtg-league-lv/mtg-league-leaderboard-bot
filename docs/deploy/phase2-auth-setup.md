@@ -3,8 +3,10 @@
 You need your existing Google (Gmail) account. **No new account, no billing, no
 credit card** — creating an OAuth client is free. Budget ~10 minutes.
 
-There are three parts: **A.** create Google OAuth credentials, **B.** configure
-Supabase, **C.** link yourself to a player.
+The app offers **both Discord and Google** sign-in. You can enable either or
+both in Supabase — only the providers you enable appear to work. Set up whichever
+you want (**A** = Google, **A2** = Discord), then **B** configure Supabase and
+**C** link yourself to a player.
 
 ---
 
@@ -40,11 +42,28 @@ consent screen" under APIs & Services). Both names are noted below.
 7. Copy the **Client ID** and **Client secret** from the dialog (you can reopen
    the client later to see them).
 
-## B. Supabase — enable Google + URLs
+## A2. Discord — create the OAuth app
 
-1. In the Supabase dashboard for project `shtatdxrwmiyzzvrfaai`:
-   **Authentication → Sign In / Providers → Google** → enable, paste the
-   **Client ID** and **Client secret** from step A7 → **Save**.
+The league runs on Discord, so this is often the friendlier option for members.
+
+1. Go to <https://discord.com/developers/applications> and sign in.
+2. **New Application** → name it `MTG Latvia League` → **Create**.
+3. Open the **OAuth2** tab:
+   - Copy the **Client ID**.
+   - Click **Reset Secret** → confirm → copy the **Client Secret**.
+4. Still in **OAuth2 → Redirects → Add Another** →
+   `https://shtatdxrwmiyzzvrfaai.supabase.co/auth/v1/callback` → **Save Changes**.
+   (Same callback URL as Google — Supabase routes every provider through it.)
+
+That's it — no consent-screen publishing step and no verification. Supabase
+requests the `identify email` scope, so you get name, avatar, and email.
+
+## B. Supabase — enable providers + URLs
+
+1. In the Supabase dashboard for project `shtatdxrwmiyzzvrfaai`, open
+   **Authentication → Sign In / Providers** and enable whichever you set up:
+   - **Google:** paste the Client ID/secret from step A7 → **Save**.
+   - **Discord:** paste the Client ID/secret from step A2.3 → **Save**.
 2. **Authentication → Providers → Email:** turn **off** "Allow new users to sign
    up" (or disable the Email provider) so the public anon key can't self-register
    or trigger auth emails. Google stays the only way in.
