@@ -366,3 +366,19 @@ select {
 .account-linked { font-size: 15px; }
 .account .auth-signin { align-self: flex-start; }
 .signin-options { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.youve-played { padding: 6px 0 4px; }
+.youve-played.editing { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pip-row { display: flex; gap: 6px; }
+.pip-toggle {
+  width: 34px; height: 34px; padding: 4px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 50%;
+  background: var(--bg); opacity: 0.4; transition: opacity 0.1s;
+}
+.pip-toggle.selected { opacity: 1; border-color: var(--accent-text); }
+.pip-toggle img { width: 100%; height: 100%; display: block; }
+.deck-name-input {
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text); font-size: 14px; min-width: 160px;
+}
+.deck-status { font-size: 13px; color: var(--muted); }

@@ -6,6 +6,37 @@ function recordChip(record) {
   return `<span class="chip">${record.wins}-${record.draws}-${record.losses}</span>`;
 }
 
+const PIPS = ['W', 'U', 'B', 'R', 'G'];
+
+// The linked viewer's own deck for this event. `entry` = { name, deck,
+// deck_colours }; editable → a pip+name form, else a read-only display.
+export function renderYouvePlayed(entry, editable) {
+  const label = '<div class="section-label">You\'ve played</div>';
+  if (editable) {
+    const selected = new Set((entry.deck_colours || '').split(''));
+    const pips = PIPS.map(c =>
+      `<button type="button" class="pip-toggle${selected.has(c) ? ' selected' : ''}" ` +
+      `data-pip="${c}" aria-pressed="${selected.has(c)}" aria-label="${c}">` +
+      `<img src="icons/mana/${c}.svg" alt="${c}" /></button>`,
+    ).join('');
+    return (
+      label +
+      '<div class="youve-played editing">' +
+      `<div class="pip-row">${pips}</div>` +
+      `<input id="deck-name" class="deck-name-input" type="text" maxlength="60" ` +
+      `placeholder="Deck name" value="${entry.deck ? entry.deck.replace(/"/g, '&quot;') : ''}" />` +
+      '<button id="deck-save" class="auth-signin" type="button">Save</button>' +
+      '<span id="deck-status" class="deck-status" role="status"></span>' +
+      '</div>'
+    );
+  }
+  const body = (entry.deck || entry.deck_colours)
+    ? `<span class="deck-info">${manaIcons(entry.deck_colours)}` +
+      `${entry.deck ? `<span class="deck-name">${entry.deck}</span>` : ''}</span>`
+    : '<span class="profile-empty">No deck recorded yet</span>';
+  return label + `<div class="youve-played">${body}</div>`;
+}
+
 const MARK = '<span class="mark">✓</span>';
 
 function deckInfo(player) {
@@ -102,11 +133,19 @@ function tournamentHeader(tournament, meta) {
   );
 }
 
-export function renderTournament(tournament) {
+export function renderTournament(tournament, viewer = null) {
   const standings = finalStandings(tournament);
+  const mine = viewer && standings.find(s => s.player.name === viewer.name);
+  const youvePlayed = mine
+    ? renderYouvePlayed(
+        { name: mine.player.name, deck: mine.player.deck, deck_colours: mine.player.deck_colours },
+        viewer.editable,
+      )
+    : '';
   // Standings-only events (legacy imports) have no round-by-round detail.
   if (isStandingsEvent(tournament)) {
     return tournamentHeader(tournament, `${standings.length} players`) +
+      youvePlayed +
       renderStandingsTable(standings);
   }
   const rounds = tournament.rounds
@@ -117,6 +156,7 @@ export function renderTournament(tournament) {
     .join('');
   return (
     tournamentHeader(tournament, `${standings.length} players · ${tournament.rounds.length} rounds`) +
+    youvePlayed +
     '<div class="section-label">Final standings</div>' +
     renderStandingsTable(standings) +
     '<div class="section-label">Round by round</div>' +
