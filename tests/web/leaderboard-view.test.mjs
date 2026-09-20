@@ -160,3 +160,19 @@ test('renderBreakdown lists tournaments, items, subtotals and total', () => {
   assert.match(html, /Store · 2026-08-01/);
   assert.match(html, /Total/);
 });
+
+test('renderLeaderboard highlights the viewer row with the me class', () => {
+  const rows = [
+    { name: 'Ann', events: 1, points: 3, breakdown: [] },
+    { name: 'Bob', events: 1, points: 1, breakdown: [] },
+  ];
+  const html = renderLeaderboard(rows, { col: 'points', dir: 'desc' }, new Map(), 'Bob');
+  assert.equal(html.split('class="row me"').length - 1, 1); // exactly one highlighted row
+  assert.ok(html.includes('Bob'));
+});
+
+test('renderLeaderboard adds no highlight when highlightName is null', () => {
+  const rows = [{ name: 'Ann', events: 1, points: 3, breakdown: [] }];
+  const html = renderLeaderboard(rows, { col: 'points', dir: 'desc' }, new Map(), null);
+  assert.ok(!html.includes('class="row me"'));
+});
