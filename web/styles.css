@@ -194,8 +194,13 @@ select {
   margin-bottom: 8px;
   background: var(--surface);
 }
-.side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
 .side.right { justify-content: flex-end; text-align: right; }
+/* Keep the name/record on the first line; drop the deck (pips + name) below it so
+   long deck names never overflow the pairing column. */
+.side .deck-info { order: 1; flex-basis: 100%; }
+.side.right .deck-info { justify-content: flex-end; }
+.name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side.win .name { font-weight: 500; }
 .mark { color: var(--win); font-weight: 500; }
 .chip {
@@ -330,12 +335,10 @@ select {
   /* Standings: 4 columns sized for #, Player, Record, Points. */
   .standings .row { grid-template-columns: 24px minmax(0, 1fr) 64px 44px; }
 
-  /* Pairings + standings: wrap each player's content so the deck (pips + name)
-     drops to a second line while the name/record stay on the first. */
-  .side, .player { flex-wrap: wrap; }
-  .side .deck-info, .player .deck-info { order: 1; flex-basis: 100%; }
-  .side.right .deck-info { justify-content: flex-end; }
-  .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Leaderboard/standings: drop each player's deck (pips + name) to a second
+     line on narrow screens. (Pairings already stack the deck at all widths.) */
+  .player { flex-wrap: wrap; }
+  .player .deck-info { order: 1; flex-basis: 100%; }
 }
 
 /* The signed-in, admin-linked viewer's own leaderboard row. */
