@@ -1,6 +1,7 @@
 import { points, rankPlayers } from '../lib/leaderboard.js';
 import { playerLink } from './player-link.js';
 import { manaIcons } from './mana.js';
+import { titleCase } from '../lib/deck.js';
 
 function recordChip(record) {
   return `<span class="chip">${record.wins}-${record.draws}-${record.losses}</span>`;
@@ -32,7 +33,7 @@ export function renderYouvePlayed(entry, editable) {
   }
   const body = (entry.deck || entry.deck_colours)
     ? `<span class="deck-info">${manaIcons(entry.deck_colours)}` +
-      `${entry.deck ? `<span class="deck-name">${entry.deck}</span>` : ''}</span>`
+      `${entry.deck ? `<span class="deck-name">${titleCase(entry.deck)}</span>` : ''}</span>`
     : '<span class="profile-empty">No deck recorded yet</span>';
   return label + `<div class="youve-played">${body}</div>`;
 }
@@ -41,7 +42,7 @@ const MARK = '<span class="mark">✓</span>';
 
 function deckInfo(player) {
   const icons = manaIcons(player.deck_colours);
-  const name = player.deck ? `<span class="deck-name">${player.deck}</span>` : '';
+  const name = player.deck ? `<span class="deck-name">${titleCase(player.deck)}</span>` : '';
   const inner = icons + name;
   // Group pips + name so it can move to its own line on narrow screens.
   return inner ? `<span class="deck-info">${inner}</span>` : '';

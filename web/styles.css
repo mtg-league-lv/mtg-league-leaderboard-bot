@@ -200,6 +200,9 @@ select {
    long deck names never overflow the pairing column. */
 .side .deck-info { order: 1; flex-basis: 100%; }
 .side.right .deck-info { justify-content: flex-end; }
+/* Guests: put "Not from League" on its own line, after the deck. */
+.side .non-league { order: 2; flex-basis: 100%; margin-left: 0; padding: 0; border: none; }
+.side.right .non-league { text-align: right; }
 .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side.win .name { font-weight: 500; }
 .mark { color: var(--win); font-weight: 500; }

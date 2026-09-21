@@ -1,5 +1,6 @@
 import { playerLink } from './player-link.js';
 import { manaIcons } from './mana.js';
+import { titleCase } from '../lib/deck.js';
 
 function statList(items, render, emptyText) {
   if (items.length === 0) return `<div class="profile-empty">${emptyText}</div>`;
@@ -49,7 +50,7 @@ export function renderProfile(name, profile, seasons = [], selectedSeason = 'all
     '<h2 class="profile-section">Decks</h2>' +
     statList(
       profile.decks,
-      d => `<li class="profile-item"><span class="deck-info">${d.deck}${manaIcons(d.colours)}</span><span class="profile-num">${d.tournaments} ${d.tournaments === 1 ? 'tournament' : 'tournaments'}</span></li>`,
+      d => `<li class="profile-item"><span class="deck-info">${titleCase(d.deck)}${manaIcons(d.colours)}</span><span class="profile-num">${d.tournaments} ${d.tournaments === 1 ? 'tournament' : 'tournaments'}</span></li>`,
       'No decks recorded yet.',
     );
 
