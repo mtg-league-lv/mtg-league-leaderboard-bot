@@ -17,6 +17,7 @@ import { isWithinDays, normalizeColours } from './lib/deck.js';
 import { saveDeck } from './lib/deck-edit.js';
 import { sanitizeNotes } from './lib/notes.js';
 import { loadNotes, saveNotes } from './lib/notes-data.js';
+import { PWA_TOAST_SEEN_KEY, mobilePlatform, shouldShowPwaToast, renderPwaToast } from './ui/pwa-toast.js';
 
 const state = {
   tournaments: [], achievements: new Map(), players: [], user: null, associatedName: null,
@@ -348,4 +349,42 @@ function setupTournaments() {
   render();
 }
 
+// First visit on a phone: suggest saving the site to the home screen (PWA).
+// Shown once; storage access is guarded so private modes just skip the memory.
+function setupPwaToast() {
+  const toast = document.getElementById('pwa-toast');
+  const platform = mobilePlatform(navigator.userAgent, navigator.maxTouchPoints);
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+    || navigator.standalone === true;
+  let seen = false;
+  try { seen = localStorage.getItem(PWA_TOAST_SEEN_KEY) === '1'; } catch { /* no storage */ }
+  if (!shouldShowPwaToast({ platform, standalone, seen })) return;
+
+  let installPrompt = null;
+  const render = () => {
+    toast.innerHTML = renderPwaToast(platform, { canInstall: Boolean(installPrompt) });
+  };
+  const close = () => { toast.hidden = true; };
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    installPrompt = event;
+    if (!toast.hidden) render();
+  });
+  window.addEventListener('appinstalled', close);
+  toast.addEventListener('click', async event => {
+    if (event.target.closest('[data-pwa-dismiss]')) close();
+    if (event.target.closest('[data-pwa-install]') && installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      close();
+    }
+  });
+
+  render();
+  toast.hidden = false;
+  try { localStorage.setItem(PWA_TOAST_SEEN_KEY, '1'); } catch { /* no storage */ }
+}
+
+setupPwaToast();
 boot();
