@@ -1,4 +1,5 @@
 import { renderProfile } from './profile-view.js';
+import { renderPersonalNotes } from './notes-view.js';
 
 function initials(name) {
   return name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
@@ -35,6 +36,7 @@ export function renderAccount(user, linked) {
     ? '<div class="account-profile">' +
       renderProfile(linked.name, linked.profile, linked.seasons, linked.selectedSeason,
         { showBack: false, achievements: linked.achievements ?? [] }) +
+      renderPersonalNotes(linked.notes || '') +
       '</div>'
     : '<p class="profile-empty">Not linked yet — ask an admin to link your account to a player.</p>';
   return back + head + body;

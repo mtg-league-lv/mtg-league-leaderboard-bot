@@ -15,10 +15,12 @@ import { renderAccount } from './ui/account-view.js';
 import { currentUser, onUserChange, signInWithProvider, signOut, associatedPlayerKey } from './lib/auth.js';
 import { isWithinDays, normalizeColours } from './lib/deck.js';
 import { saveDeck } from './lib/deck-edit.js';
+import { sanitizeNotes } from './lib/notes.js';
+import { loadNotes, saveNotes } from './lib/notes-data.js';
 
 const state = {
   tournaments: [], achievements: new Map(), players: [], user: null, associatedName: null,
-  renderLeaderboard: null, showAccount: null, renderTournamentView: null,
+  notes: '', renderLeaderboard: null, showAccount: null, renderTournamentView: null,
 };
 
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -28,6 +30,7 @@ async function refreshViewer() {
   state.user = await currentUser(client);
   const key = state.user ? await associatedPlayerKey(client) : null;
   state.associatedName = associatedName(key ? { player_key: key } : null, state.players);
+  state.notes = state.user ? await loadNotes(client) : '';
   document.getElementById('auth-control').innerHTML = renderAuthControl(state.user);
 }
 
@@ -140,6 +143,7 @@ function setupTabs() {
       name, profile: playerProfile(tournaments, name),
       seasons: seasonsForPlayer(name), selectedSeason: season,
       achievements: state.achievements.get(name) ?? [],
+      notes: state.notes,
     };
   }
   function showAccount() {
@@ -155,10 +159,26 @@ function setupTabs() {
       accountView.innerHTML = renderAccount(state.user, linkedFor(event.target.value));
     }
   });
-  accountView.addEventListener('click', event => {
+  accountView.addEventListener('click', async event => {
     const provider = event.target.closest('[data-provider]');
     if (provider) signInWithProvider(client, provider.dataset.provider, redirectTo());
     if (event.target.closest('#signout-btn')) signOut(client);
+    const saveNotesBtn = event.target.closest('#notes-save');
+    if (saveNotesBtn && state.user) {
+      const ta = accountView.querySelector('#notes-text');
+      const status = accountView.querySelector('#notes-status');
+      const text = sanitizeNotes(ta.value);
+      status.textContent = 'Saving…';
+      saveNotesBtn.disabled = true;
+      try {
+        await saveNotes(client, state.user.id, text);
+        state.notes = text;
+        status.textContent = 'Saved';
+      } catch {
+        status.textContent = "Couldn't save. Try again.";
+      }
+      saveNotesBtn.disabled = false;
+    }
   });
   profileView.addEventListener('change', event => {
     if (event.target.id === 'profile-season' && profileName) {
