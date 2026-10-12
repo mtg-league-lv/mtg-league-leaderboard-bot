@@ -75,10 +75,21 @@ create table if not exists profiles (
   created_at timestamptz not null default now()
 );
 
+-- Free-text personal notes, editable by the owner only.
+alter table profiles add column if not exists notes text;
+
 alter table profiles enable row level security;
 drop policy if exists "own profile read" on profiles;
 create policy "own profile read" on profiles
   for select to authenticated using (auth.uid() = id);
+
+-- Owners may update ONLY their own notes. Column-restricted so player_key stays
+-- admin-only (no self-linking); service_role is unaffected.
+revoke update on profiles from authenticated;
+grant update (notes) on profiles to authenticated;
+drop policy if exists "own profile update notes" on profiles;
+create policy "own profile update notes" on profiles
+  for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);
 
 -- Player achievements: short badge labels (emoji + text) shown on the profile.
 -- Linked by player_key (no FK, so legacy players off the is_league roster qualify).

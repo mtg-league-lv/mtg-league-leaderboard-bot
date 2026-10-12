@@ -44,3 +44,19 @@ test('unlinked account tells the user to ask an admin', () => {
   assert.ok(html.includes('id="signout-btn"'));
   assert.ok(html.includes('>AL<'));
 });
+
+test('linked account shows the Personal notes section after the profile', () => {
+  const html = renderAccount(
+    { name: 'Ann Lee', email: 'ann@x.io', avatarUrl: null },
+    { name: 'Ann L', profile: sampleProfile, seasons: [], selectedSeason: 'all', notes: 'hi' },
+  );
+  assert.ok(html.includes('Personal notes'));
+  assert.ok(html.includes('id="notes-text"'));
+  // Notes come after Top friends (which renderProfile puts last).
+  assert.ok(html.indexOf('Top friends') < html.indexOf('Personal notes'));
+});
+
+test('signed-in but not linked shows no Personal notes', () => {
+  const html = renderAccount({ name: 'Ann Lee', email: 'ann@x.io', avatarUrl: null }, null);
+  assert.ok(!html.includes('Personal notes'));
+});
