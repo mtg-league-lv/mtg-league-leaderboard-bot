@@ -20,7 +20,7 @@ import { loadNotes, saveNotes } from './lib/notes-data.js';
 import { PWA_TOAST_SEEN_KEY, mobilePlatform, shouldShowPwaToast, renderPwaToast } from './ui/pwa-toast.js';
 
 const state = {
-  tournaments: [], achievements: new Map(), players: [], user: null, associatedName: null,
+  tournaments: [], achievements: new Map(), ratings: new Map(), players: [], user: null, associatedName: null,
   notes: '', renderLeaderboard: null, showAccount: null, renderTournamentView: null,
 };
 
@@ -41,6 +41,7 @@ async function boot() {
     state.tournaments = data.tournaments;
     state.players = data.players;
     state.achievements = data.achievements;
+    state.ratings = data.ratings;
   } catch {
     const message = '<div class="empty">Couldn\'t load data.</div>';
     document.getElementById('lb-body').innerHTML = message;
@@ -122,7 +123,7 @@ function setupTabs() {
       : state.tournaments.filter(t => seasonKey(t.date) === season);
     profileView.innerHTML = renderProfile(
       name, playerProfile(tournaments, name), seasonsForPlayer(name), season,
-      { achievements: state.achievements.get(name) ?? [] },
+      { achievements: state.achievements.get(name) ?? [], rating: state.ratings.get(name) ?? null },
     );
   }
   function showProfile(name) {
@@ -144,6 +145,7 @@ function setupTabs() {
       name, profile: playerProfile(tournaments, name),
       seasons: seasonsForPlayer(name), selectedSeason: season,
       achievements: state.achievements.get(name) ?? [],
+      rating: state.ratings.get(name) ?? null,
       notes: state.notes,
     };
   }
@@ -334,6 +336,7 @@ function setupTournaments() {
       state.tournaments = data.tournaments;
       state.players = data.players;
       state.achievements = data.achievements;
+    state.ratings = data.ratings;
       render();
       if (state.renderLeaderboard) state.renderLeaderboard();
     } catch {

@@ -11,6 +11,7 @@ from bot.config import Config, load_config
 from bot.discord_client import DiscordClient
 from bot.ingest import run as ingest_run
 from bot.leaderboard import run as leaderboard_run
+from bot.rating import run as ratings_run
 from bot.store import Store
 
 
@@ -19,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("ingest")
     sub.add_parser("leaderboard")
+    sub.add_parser("ratings")
     return parser
 
 
@@ -32,6 +34,13 @@ def _run_ingest(cfg: Config) -> None:
     discord, store = _make_clients(cfg)
     count = ingest_run(discord, store, cfg.results_channel_id, cfg.timezone)
     logging.info("Ingest complete: %d new tournament(s)", count)
+    if count:
+        ratings_run(store)
+
+
+def _run_ratings(cfg: Config) -> None:
+    _, store = _make_clients(cfg)
+    ratings_run(store)
 
 
 def _run_leaderboard(cfg: Config) -> None:
@@ -49,6 +58,8 @@ def main(argv: list[str] | None = None) -> None:
         _run_ingest(cfg)
     elif args.command == "leaderboard":
         _run_leaderboard(cfg)
+    elif args.command == "ratings":
+        _run_ratings(cfg)
 
 
 if __name__ == "__main__":

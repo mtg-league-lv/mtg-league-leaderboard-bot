@@ -16,14 +16,18 @@ function seasonPicker(seasons = [], selected = 'all') {
 }
 
 export function renderProfile(name, profile, seasons = [], selectedSeason = 'all', options = {}) {
-  const { showBack = true, achievements = [] } = options;
+  const { showBack = true, achievements = [], rating = null } = options;
   const back = showBack ? '<a class="back-link" href="#">← Back</a>' : '';
   const header =
     `<div class="profile-header"><h1 class="profile-name">${name}</h1>` +
     `${seasonPicker(seasons, selectedSeason)}</div>`;
+  // eloScore is all-time, so it shows whatever season is selected.
+  const ratingLine = rating == null
+    ? ''
+    : `<div class="profile-rating" title="League rating (eloScore)">Rating <strong>${rating}</strong></div>`;
 
   if (profile.tournaments === 0) {
-    return `${back}${header}<div class="profile-empty">No data for this player in this season.</div>`;
+    return `${back}${header}${ratingLine}<div class="profile-empty">No data for this player in this season.</div>`;
   }
 
   const r = profile.record;
@@ -77,5 +81,5 @@ export function renderProfile(name, profile, seasons = [], selectedSeason = 'all
       'No head-to-head data yet.',
     );
 
-  return back + header + summary + achievementsSection + placements + decks + rivals + friends;
+  return back + header + ratingLine + summary + achievementsSection + placements + decks + rivals + friends;
 }

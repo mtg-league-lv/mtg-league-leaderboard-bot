@@ -78,3 +78,18 @@ export function achievementsByName(achievements, results, players) {
   for (const p of players) attach(p.display_name, p.player_key);
   return byName;
 }
+
+// eloScore by display name, matched the same way as achievements (any name a
+// player_key appears under in results, plus the roster display name).
+export function ratingsByName(ratings, results, players) {
+  const byKey = new Map(
+    ratings.filter(r => r.elo_score != null).map(r => [r.player_key, r.elo_score]),
+  );
+  const byName = new Map();
+  const attach = (name, key) => {
+    if (name != null && byKey.has(key)) byName.set(name, byKey.get(key));
+  };
+  for (const r of results) attach(r.player_name, r.player_key);
+  for (const p of players) attach(p.display_name, p.player_key);
+  return byName;
+}

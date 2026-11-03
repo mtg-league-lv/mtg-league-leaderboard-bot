@@ -104,3 +104,8 @@ test('omits the achievements section when there are none', () => {
   const html = renderProfile('Ann', profile);
   assert.ok(!html.includes('Achievements'));
 });
+
+test('shows the eloScore rating when given, and omits it otherwise', () => {
+  assert.match(renderProfile('Ann', profile, [], 'all', { rating: 596 }), /Rating <strong>596<\/strong>/);
+  assert.doesNotMatch(renderProfile('Ann', profile), /profile-rating/);
+});

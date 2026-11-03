@@ -31,3 +31,13 @@ test('lists all eight ranks as rank cards', () => {
   }
   assert.equal((html.match(/class="lr-rank"/g) || []).length, 8);
 });
+
+test('explains the eloScore rating system with its formula and examples', () => {
+  const html = renderLeagueRules();
+  for (const text of [
+    'League Rating (eloScore)', 'starts at <strong>500</strong>', 'Difficulty Multiplier',
+    'min(2.0, max(1.0', '+25 × multiplier', '+96', '+125', '717',
+  ]) {
+    assert.ok(html.includes(text), `missing: ${text}`);
+  }
+});

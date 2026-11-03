@@ -1,7 +1,7 @@
 // Thin I/O wrapper: page the three tables through an injected Supabase client
 // and build the site shape. The client is a parameter (never imported here) so
 // the module carries no CDN dependency and is unit-testable in Node.
-import { buildSiteData, achievementsByName } from './site-data.js';
+import { buildSiteData, achievementsByName, ratingsByName } from './site-data.js';
 
 const PAGE_SIZE = 1000;
 
@@ -12,6 +12,7 @@ const RESULT_COLS =
   'player_deck, player_deck_colours';
 const PLAYER_COLS = 'player_key, display_name, is_league';
 const ACHIEVEMENT_COLS = 'player_key, label';
+const RATING_COLS = 'player_key, elo_score';
 
 export async function fetchAll(client, table, cols) {
   // PostgREST caps a single response (~1000 rows); page explicitly so a dropped
@@ -32,11 +33,14 @@ export async function fetchAll(client, table, cols) {
 }
 
 export async function loadSiteData(client) {
-  const [tournaments, results, players, achievements] = await Promise.all([
+  const [tournaments, results, players, achievements, ratings] = await Promise.all([
     fetchAll(client, 'tournaments', TOURNAMENT_COLS),
     fetchAll(client, 'round_results', RESULT_COLS),
     fetchAll(client, 'players', PLAYER_COLS),
     fetchAll(client, 'achievements', ACHIEVEMENT_COLS),
+    // Separate, optional query: if the elo_score column isn't migrated yet the
+    // site still loads, just without ratings.
+    fetchAll(client, 'players', RATING_COLS).catch(() => []),
   ]);
   const leagueKeys = new Set(
     players.filter(p => p.is_league).map(p => p.player_key),
@@ -45,5 +49,6 @@ export async function loadSiteData(client) {
     ...buildSiteData(tournaments, results, leagueKeys),
     players,
     achievements: achievementsByName(achievements, results, players),
+    ratings: ratingsByName(ratings, results, players),
   };
 }

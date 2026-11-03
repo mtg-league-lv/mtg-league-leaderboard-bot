@@ -453,3 +453,21 @@ select {
   line-height: 1;
   cursor: pointer;
 }
+
+.profile-rating { font-size: 14px; color: var(--muted); margin-bottom: 2px; }
+.profile-rating strong { color: var(--text); font-weight: 600; }
+.rules-page .rules-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.rules-page .rules-table th,
+.rules-page .rules-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.rules-page .rules-table th { font-weight: 600; color: var(--muted); background: var(--surface); }
+.rules-page .lr-formula {
+  margin: 10px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  overflow-x: auto;
+}
+.rules-page .rules-small { font-size: 13px; color: var(--muted); margin: 4px 0 12px; }

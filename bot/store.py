@@ -3,6 +3,10 @@ from __future__ import annotations
 from datetime import date
 
 from bot.parser import PlayerRound
+from bot.rating import RatingChange
+
+PAGE_SIZE = 1000
+WRITE_CHUNK = 500
 
 
 class Store:
@@ -141,3 +145,55 @@ class Store:
             }
             for row in finals.values()
         ]
+
+    def fetch_all_round_results(self) -> list[dict]:
+        """Every round_results row needed for ratings, with event_date flattened.
+
+        Paged explicitly: PostgREST caps a single response at ~1000 rows.
+        """
+        rows: list[dict] = []
+        start = 0
+        while True:
+            resp = (
+                self._db.table("round_results")
+                .select(
+                    "tournament_id, round, pairing, player_key, game_wins, "
+                    "opponent_key, opponent_game_wins, tournaments!inner(event_date)"
+                )
+                .order("id")
+                .range(start, start + PAGE_SIZE - 1)
+                .execute()
+            )
+            for row in resp.data:
+                rows.append({**row, "event_date": row["tournaments"]["event_date"]})
+            if len(resp.data) < PAGE_SIZE:
+                return rows
+            start += PAGE_SIZE
+
+    def save_ratings(self, ratings: dict[str, int], history: list[RatingChange]) -> None:
+        """Write each player's elo_score and replace the rating audit trail."""
+        players = [{"player_key": k, "elo_score": v} for k, v in sorted(ratings.items())]
+        for i in range(0, len(players), WRITE_CHUNK):
+            self._db.table("players").upsert(
+                players[i : i + WRITE_CHUNK], on_conflict="player_key"
+            ).execute()
+        # Full recompute: drop the old trail (delete needs a filter) and rewrite it.
+        self._db.table("rating_changes").delete().gte("id", 0).execute()
+        rows = [
+            {
+                "tournament_id": h.tournament_id,
+                "round": h.round,
+                "pairing": h.pairing,
+                "player_key": h.player_key,
+                "opponent_key": h.opponent_key,
+                "games_won": h.games_won,
+                "opponent_games_won": h.opponent_games_won,
+                "multiplier": h.multiplier,
+                "rating_before": h.rating_before,
+                "rating_change": h.rating_change,
+                "rating_after": h.rating_after,
+            }
+            for h in history
+        ]
+        for i in range(0, len(rows), WRITE_CHUNK):
+            self._db.table("rating_changes").insert(rows[i : i + WRITE_CHUNK]).execute()
