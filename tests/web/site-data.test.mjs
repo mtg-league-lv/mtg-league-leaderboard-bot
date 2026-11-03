@@ -123,3 +123,21 @@ test('achievementsByName ignores achievements whose key has no name', () => {
   );
   assert.equal(map.size, 0);
 });
+
+test('ratingHistoryByName resolves names and tournaments, newest first', async () => {
+  const { ratingHistoryByName } = await import('../../web/lib/site-data.js');
+  const changes = [
+    { tournament_id: 1, round: 1, player_key: 'ann', opponent_key: 'bob', games_won: 2,
+      opponent_games_won: 0, multiplier: '1.00', rating_before: 500, rating_change: 75, rating_after: 575 },
+    { tournament_id: 2, round: 1, player_key: 'ann', opponent_key: 'bob', games_won: 2,
+      opponent_games_won: 1, multiplier: '1.00', rating_before: 575, rating_change: 75, rating_after: 650 },
+  ];
+  const results = [{ player_key: 'ann', player_name: 'Ann' }, { player_key: 'bob', player_name: 'Bob' }];
+  const tournaments = [{ id: '1', name: 'A', date: '2026-08-01' }, { id: '2', name: 'B', date: '2026-08-08' }];
+  const map = ratingHistoryByName(changes, results, [], tournaments);
+  const ann = map.get('Ann');
+  assert.deepEqual(ann.map(h => h.tournament), ['B', 'A']);
+  assert.equal(ann[0].opponent, 'Bob');
+  assert.equal(ann[0].multiplier, 1);
+  assert.equal(map.has('Bob'), false);
+});
