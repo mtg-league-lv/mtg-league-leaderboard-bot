@@ -44,6 +44,14 @@ class FakeQuery:
         self.table.upserted.append(payload)
         return self
 
+    def range(self, start, end):
+        self._range = (start, end)
+        return self
+
+    def delete(self):
+        self.table.deleted += 1
+        return self
+
     def eq(self, col, value):
         self._filter = (col, {value})
         return self
@@ -53,6 +61,9 @@ class FakeQuery:
             return Result([])
         if self._is_insert:
             return Result(self.table.insert_returns)
+        if getattr(self, "_range", None):
+            start, end = self._range
+            return Result(self.table.rows[start : end + 1])
         if self._filter:
             col, values = self._filter
             return Result([r for r in self.table.rows if r.get(col) in values])
@@ -65,6 +76,7 @@ class FakeTable:
         self.inserted = []
         self.upserted = []
         self.calls = []
+        self.deleted = 0
         self.insert_returns = insert_returns or []
 
     def query(self):
@@ -209,3 +221,25 @@ def test_fetch_tournament_stats_carries_final_round_pairing():
     store = Store(FakeSupabase({"round_results": rr}))
     out = store.fetch_tournament_stats(date(2026, 7, 1), date(2026, 7, 31))
     assert out[0]["pairing"] == 2
+
+
+def test_fetch_all_round_results_pages_and_flattens_event_date():
+    rows = [{"tournament_id": 1, "round": 1, "pairing": i, "player_key": f"p{i}",
+             "tournaments": {"event_date": "2026-08-01"}} for i in range(1500)]
+    store = Store(FakeSupabase({"round_results": FakeTable(rows=rows)}))
+    out = store.fetch_all_round_results()
+    assert len(out) == 1500
+    assert out[1499]["event_date"] == "2026-08-01"
+
+
+def test_save_ratings_upserts_scores_and_rewrites_history():
+    from bot.rating import RatingChange
+    players, changes = FakeTable(), FakeTable()
+    store = Store(FakeSupabase({"players": players, "rating_changes": changes}))
+    history = [RatingChange(1, 1, 1, "a", "b", 2, 1, 1.42, 500, 96, 596)]
+    store.save_ratings({"b": 642, "a": 596}, history)
+    assert players.upserted == [[{"player_key": "a", "elo_score": 596},
+                                 {"player_key": "b", "elo_score": 642}]]
+    assert changes.deleted == 1
+    assert changes.inserted[0][0]["multiplier"] == 1.42
+    assert changes.inserted[0][0]["rating_after"] == 596

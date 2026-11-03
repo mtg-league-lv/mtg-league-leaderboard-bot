@@ -20,7 +20,7 @@ import { loadNotes, saveNotes } from './lib/notes-data.js';
 import { PWA_TOAST_SEEN_KEY, mobilePlatform, shouldShowPwaToast, renderPwaToast } from './ui/pwa-toast.js';
 
 const state = {
-  tournaments: [], achievements: new Map(), players: [], user: null, associatedName: null,
+  tournaments: [], achievements: new Map(), ratings: new Map(), ratingHistory: new Map(), players: [], user: null, associatedName: null,
   notes: '', renderLeaderboard: null, showAccount: null, renderTournamentView: null,
 };
 
@@ -41,6 +41,8 @@ async function boot() {
     state.tournaments = data.tournaments;
     state.players = data.players;
     state.achievements = data.achievements;
+    state.ratings = data.ratings;
+    state.ratingHistory = data.ratingHistory;
   } catch {
     const message = '<div class="empty">Couldn\'t load data.</div>';
     document.getElementById('lb-body').innerHTML = message;
@@ -122,7 +124,8 @@ function setupTabs() {
       : state.tournaments.filter(t => seasonKey(t.date) === season);
     profileView.innerHTML = renderProfile(
       name, playerProfile(tournaments, name), seasonsForPlayer(name), season,
-      { achievements: state.achievements.get(name) ?? [] },
+      { achievements: state.achievements.get(name) ?? [], rating: state.ratings.get(name) ?? null,
+        ratingHistory: state.ratingHistory.get(name) ?? [] },
     );
   }
   function showProfile(name) {
@@ -144,6 +147,8 @@ function setupTabs() {
       name, profile: playerProfile(tournaments, name),
       seasons: seasonsForPlayer(name), selectedSeason: season,
       achievements: state.achievements.get(name) ?? [],
+      rating: state.ratings.get(name) ?? null,
+      ratingHistory: state.ratingHistory.get(name) ?? [],
       notes: state.notes,
     };
   }
@@ -155,6 +160,16 @@ function setupTabs() {
     window.scrollTo(0, 0);
   }
   state.showAccount = showAccount;
+  // The profile's "?" next to the rating toggles its eloScore history.
+  for (const view of [profileView, accountView]) {
+    view.addEventListener('click', event => {
+      const btn = event.target.closest('.rating-why');
+      if (!btn) return;
+      const panel = view.querySelector('#rating-history');
+      panel.hidden = !panel.hidden;
+      btn.setAttribute('aria-expanded', String(!panel.hidden));
+    });
+  }
   accountView.addEventListener('change', event => {
     if (event.target.id === 'profile-season' && state.associatedName) {
       accountView.innerHTML = renderAccount(state.user, linkedFor(event.target.value));
@@ -334,6 +349,8 @@ function setupTournaments() {
       state.tournaments = data.tournaments;
       state.players = data.players;
       state.achievements = data.achievements;
+    state.ratings = data.ratings;
+    state.ratingHistory = data.ratingHistory;
       render();
       if (state.renderLeaderboard) state.renderLeaderboard();
     } catch {

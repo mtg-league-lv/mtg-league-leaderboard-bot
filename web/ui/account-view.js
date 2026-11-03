@@ -35,7 +35,8 @@ export function renderAccount(user, linked) {
   const body = linked
     ? '<div class="account-profile">' +
       renderProfile(linked.name, linked.profile, linked.seasons, linked.selectedSeason,
-        { showBack: false, achievements: linked.achievements ?? [] }) +
+        { showBack: false, achievements: linked.achievements ?? [], rating: linked.rating ?? null,
+          ratingHistory: linked.ratingHistory ?? [] }) +
       renderPersonalNotes(linked.notes || '') +
       '</div>'
     : '<p class="profile-empty">Not linked yet — ask an admin to link your account to a player.</p>';

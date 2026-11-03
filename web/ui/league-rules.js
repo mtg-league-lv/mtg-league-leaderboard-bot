@@ -9,6 +9,32 @@ const RANKS = [
   ['Forgotten Gods', 'Honoring veterans who spent years in the league and left their mark.\nA tribute to those who once shaped the league.\nThey are not gone… only remembered as legends.'],
 ];
 
+// Rating examples: [title, [player, old, change, new] x2, note].
+const RATING_EXAMPLES = [
+  ['Underdog wins — A (500) beats B (642) 2:1',
+    [['Player A', 500, '+96', 596], ['Player B', 642, '0', 642]],
+    'Difference 142 → A’s multiplier is 1.42, B’s is 1.0. A: (2 × 25 × 1.42) + 25 = +96. B: (1 × 25 × 1.0) − 25 = 0.'],
+  ['Equal ratings — A (500) beats B (500) 2:0',
+    [['Player A', 500, '+75', 575], ['Player B', 500, '−25', 475]],
+    'Both multipliers are 1.0. A: (2 × 25) + 25 = +75. B: (0 × 25) − 25 = −25.'],
+  ['Favourite wins — B (642) beats A (500) 2:0',
+    [['Player A', 500, '−25', 475], ['Player B', 642, '+75', 717]],
+    'A: (0 × 25 × 1.42) − 25 = −25. B: (2 × 25 × 1.0) + 25 = +75.'],
+  ['Maximum multiplier — A (500) beats B (750) 2:1',
+    [['Player A', 500, '+125', 625], ['Player B', 750, '0', 750]],
+    'Difference 250 → raw 2.5, capped at 2.0. A: (2 × 25 × 2.0) + 25 = +125. B: (1 × 25 × 1.0) − 25 = 0.'],
+];
+
+function ratingExamples() {
+  return RATING_EXAMPLES.map(([title, rows, note]) => `
+  <h3>${title}</h3>
+  <table class="rules-table">
+    <thead><tr><th>Player</th><th>Old rating</th><th>Change</th><th>New rating</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
+  </table>
+  <p class="rules-small">${note}</p>`).join('');
+}
+
 function ranks() {
   return RANKS
     .map(([name, desc]) => `<div class="lr-rank"><div class="lr-rank-name">${name}</div><div class="lr-rank-desc">${desc}</div></div>`)
@@ -79,6 +105,45 @@ export function renderLeagueRules() {
 
   <h2>Extra Fun</h2>
   <p><strong>Participating in Commander events</strong> — if a player wishes to suffer some more, they can create an EDH deck using cards from their league collection and participate in any of the commander events. The store credit earned from these events ISN'T added to league credit, but promo cards are. You are not required to play the entire commander event with the league deck — one match is sufficient.</p>
+
+  <h1>📈 League Rating (eloScore)</h1>
+  <p>Every league player has a rating that changes with their match results in the weekly Standard tournaments. Ratings carry over between tournaments and seasons — they are not reset.</p>
+  <ul>
+    <li>Every new player starts at <strong>500</strong>.</li>
+    <li>Ratings are recalculated automatically after each new tournament, round by round: each match uses the ratings both players had after the previous round.</li>
+    <li>Every rating change is kept in a history for auditing.</li>
+  </ul>
+
+  <h2>Points per Match</h2>
+  <table class="rules-table">
+    <thead><tr><th>Event</th><th>Points</th></tr></thead>
+    <tbody>
+      <tr><td>Each game won</td><td>+25 × multiplier</td></tr>
+      <tr><td>Match won</td><td>+25 bonus</td></tr>
+      <tr><td>Match lost</td><td>−25 penalty</td></tr>
+    </tbody>
+  </table>
+  <p>Game points are earned for <em>every</em> game you win, not only for winning the match — so the loser of a 2:1 still gets points for their one game before the loss penalty.</p>
+
+  <h2>Difficulty Multiplier</h2>
+  <p>Beating a stronger opponent is worth more. The <strong>lower-rated</strong> player gets a multiplier based on the rating difference; the higher-rated player always uses 1.0.</p>
+  <div class="lr-formula">Multiplier = min(2.0, max(1.0, |R<sub>opponent</sub> − R<sub>player</sub>| / 100))</div>
+  <table class="rules-table">
+    <thead><tr><th>Rating difference</th><th>Multiplier</th></tr></thead>
+    <tbody>
+      <tr><td>0 – 100</td><td>1.0</td></tr>
+      <tr><td>142</td><td>1.42</td></tr>
+      <tr><td>150</td><td>1.5</td></tr>
+      <tr><td>200 or more</td><td>2.0 (maximum)</td></tr>
+    </tbody>
+  </table>
+  <p class="rules-note">The multiplier is never below 1.0 and never above 2.0.</p>
+
+  <h2>Rating Change</h2>
+  <div class="lr-formula">Change = (Games won × 25 × Multiplier) + Match bonus<br>New rating = Old rating + Change</div>
+  <p>The match bonus is +25 for a win and −25 for a loss (0 for a drawn match). A fractional change is rounded to the nearest whole number (halves round up).</p>
+
+  <h2>Examples</h2>${ratingExamples()}
 
   <h1>🔮 MTG League Rank System</h1>
   <p>Climb through the ranks of our league and prove your mastery across the Multiverse. Your role reflects your experience, dedication, and victories.</p>

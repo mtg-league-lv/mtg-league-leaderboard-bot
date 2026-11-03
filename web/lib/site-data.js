@@ -78,3 +78,60 @@ export function achievementsByName(achievements, results, players) {
   for (const p of players) attach(p.display_name, p.player_key);
   return byName;
 }
+
+// eloScore by display name, matched the same way as achievements (any name a
+// player_key appears under in results, plus the roster display name).
+export function ratingsByName(ratings, results, players) {
+  const byKey = new Map(
+    ratings.filter(r => r.elo_score != null).map(r => [r.player_key, r.elo_score]),
+  );
+  const byName = new Map();
+  const attach = (name, key) => {
+    if (name != null && byKey.has(key)) byName.set(name, byKey.get(key));
+  };
+  for (const r of results) attach(r.player_name, r.player_key);
+  for (const p of players) attach(p.display_name, p.player_key);
+  return byName;
+}
+
+// eloScore audit trail by display name, newest first. Each entry:
+// { tournament, date, round, opponent, gamesWon, opponentGamesWon, multiplier,
+//   before, change, after }. Names resolve like achievements; a tournament
+// missing from `tournaments` falls back to its id.
+export function ratingHistoryByName(changes, results, players, tournaments) {
+  const nameByKey = new Map();
+  for (const r of results) nameByKey.set(r.player_key, r.player_name);
+  for (const p of players) if (p.display_name) nameByKey.set(p.player_key, p.display_name);
+  const tById = new Map(tournaments.map(t => [String(t.id), t]));
+
+  const byKey = new Map();
+  for (const c of changes) {
+    const t = tById.get(String(c.tournament_id));
+    if (!byKey.has(c.player_key)) byKey.set(c.player_key, []);
+    byKey.get(c.player_key).push({
+      tournamentId: String(c.tournament_id),
+      tournament: t?.name ?? `Tournament ${c.tournament_id}`,
+      date: t?.date ?? '',
+      round: c.round,
+      opponent: nameByKey.get(c.opponent_key) ?? c.opponent_key,
+      gamesWon: c.games_won,
+      opponentGamesWon: c.opponent_games_won,
+      multiplier: Number(c.multiplier),
+      before: c.rating_before,
+      change: c.rating_change,
+      after: c.rating_after,
+    });
+  }
+  const newestFirst = (a, b) =>
+    (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) ||
+    Number(b.tournamentId) - Number(a.tournamentId) || b.round - a.round;
+  for (const list of byKey.values()) list.sort(newestFirst);
+
+  const byName = new Map();
+  const attach = (name, key) => {
+    if (name != null && byKey.has(key)) byName.set(name, byKey.get(key));
+  };
+  for (const r of results) attach(r.player_name, r.player_key);
+  for (const p of players) attach(p.display_name, p.player_key);
+  return byName;
+}

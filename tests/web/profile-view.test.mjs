@@ -104,3 +104,36 @@ test('omits the achievements section when there are none', () => {
   const html = renderProfile('Ann', profile);
   assert.ok(!html.includes('Achievements'));
 });
+
+test('shows the eloScore rating when given, and omits it otherwise', () => {
+  assert.match(renderProfile('Ann', profile, [], 'all', { rating: 596 }), /Rating <strong>596<\/strong>/);
+  assert.doesNotMatch(renderProfile('Ann', profile), /profile-rating/);
+});
+
+const history = [
+  { tournamentId: '2', tournament: '2026-08-08', date: '2026-08-08', round: 2, opponent: 'Bob',
+    gamesWon: 2, opponentGamesWon: 1, multiplier: 1.42, before: 500, change: 96, after: 596 },
+  { tournamentId: '2', tournament: '2026-08-08', date: '2026-08-08', round: 1, opponent: 'Cara',
+    gamesWon: 0, opponentGamesWon: 2, multiplier: 1, before: 525, change: -25, after: 500 },
+  { tournamentId: '1', tournament: 'Store Champs', date: '2026-08-01', round: 1, opponent: 'Dan',
+    gamesWon: 2, opponentGamesWon: 1, multiplier: 1, before: 450, change: 75, after: 525 },
+];
+
+test('rating "?" button toggles a hidden history panel', () => {
+  const html = renderProfile('Ann', profile, [], 'all', { rating: 596, ratingHistory: history });
+  assert.match(html, /class="why rating-why"[^>]*aria-controls="rating-history"/);
+  assert.match(html, /<div id="rating-history" class="rating-history" hidden>/);
+  assert.doesNotMatch(renderProfile('Ann', profile, [], 'all', { rating: 500 }), /rating-why/);
+});
+
+test('rating history groups by tournament with net change and per-round rows', async () => {
+  const { renderRatingHistory } = await import('../../web/ui/profile-view.js');
+  const html = renderRatingHistory(history);
+  assert.match(html, /<span>2026-08-08<\/span><span>\+71<\/span>/);
+  assert.match(html, /Store Champs · 2026-08-01/);
+  assert.match(html, /×1\.42/);
+  assert.match(html, /×1\.0/);
+  assert.match(html, /class="rh-change down">−25</);
+  assert.match(html, /2–1/);
+  assert.ok(html.indexOf('Bob') < html.indexOf('Dan'), 'newest first');
+});

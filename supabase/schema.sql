@@ -106,3 +106,30 @@ alter table achievements enable row level security;
 drop policy if exists "public read achievements" on achievements;
 create policy "public read achievements" on achievements
   for select to anon, authenticated using (true);
+
+-- League rating (eloScore). Every player starts at 500; `python -m bot ratings`
+-- (also run after each ingest that adds a tournament) replays all matches and
+-- rewrites these values. See bot/rating.py for the formula.
+alter table players add column if not exists elo_score int not null default 500;
+
+-- Audit trail: one row per player per rated match, rewritten on each recompute.
+create table if not exists rating_changes (
+  id                 bigint generated always as identity primary key,
+  tournament_id      bigint not null references tournaments(id) on delete cascade,
+  round              int  not null,
+  pairing            int  not null,
+  player_key         text not null,
+  opponent_key       text not null,
+  games_won          int  not null,
+  opponent_games_won int  not null,
+  multiplier         numeric(3, 2) not null,
+  rating_before      int  not null,
+  rating_change      int  not null,
+  rating_after       int  not null
+);
+create index if not exists rating_changes_player_key_idx on rating_changes (player_key);
+
+alter table rating_changes enable row level security;
+drop policy if exists "public read rating_changes" on rating_changes;
+create policy "public read rating_changes" on rating_changes
+  for select to anon, authenticated using (true);

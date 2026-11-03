@@ -75,3 +75,36 @@ test('loadSiteData returns achievements mapped by name', async () => {
   const data = await loadSiteData(client);
   assert.deepEqual(data.achievements.get('Ann'), ['🏆Summer 2026']);
 });
+
+test('loadSiteData returns eloScore ratings mapped by name', async () => {
+  const client = new FakeClient({
+    tournaments: [{ id: 1, name: 'A', event_date: '2026-07-06' }],
+    round_results: [res(1, 1, 1, 'Ann', 'ann', 2, 1, 0, 0)],
+    players: [{ player_key: 'ann', display_name: 'Ann', is_league: true, elo_score: 596 }],
+  });
+  const data = await loadSiteData(client);
+  assert.equal(data.ratings.get('Ann'), 596);
+});
+
+test('loadSiteData still loads when the rating query fails (column not migrated)', async () => {
+  const client = new FakeClient({
+    tournaments: [{ id: 1, name: 'A', event_date: '2026-07-06' }],
+    round_results: [res(1, 1, 1, 'Ann', 'ann', 2, 1, 0, 0)],
+    players: [{ player_key: 'ann', display_name: 'Ann', is_league: true }],
+  });
+  const from = client.from.bind(client);
+  client.from = name => {
+    const b = from(name);
+    const select = b.select.bind(b);
+    b.select = cols => {
+      if (cols.includes('elo_score')) {
+        return { range: async () => ({ data: null, error: new Error('column does not exist') }) };
+      }
+      return select(cols);
+    };
+    return b;
+  };
+  const data = await loadSiteData(client);
+  assert.equal(data.tournaments.length, 1);
+  assert.equal(data.ratings.size, 0);
+});
